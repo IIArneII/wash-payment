@@ -1,0 +1,38 @@
+version: "3.2"
+
+services:
+  wash_payment_postgres:
+    image: postgres:14.5
+    restart: always
+    environment:
+      POSTGRES_USER:  ${WASH_PAYMENT_DB_USER:-admin}
+      POSTGRES_PASSWORD: ${WASH_PAYMENT_DB_PASSWORD:-password}
+      POSTGRES_DB: ${WASH_PAYMENT_DB_DATABASE:-wash_payment}
+    volumes:
+      - wash_payment_postgresql:/var/lib/postgresql/data
+    ports:
+      - "${WASH_PAYMENT_DB_PORT:-5432}:5432"
+  
+  wash_payment_pgadmin:
+    image: dpage/pgadmin4:4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: ${WASH_PAYMENT_PGADMIN_PASSWORD:-password}
+    ports:
+      - ${WASH_PAYMENT_PGADMIN_PORT:-8085}:80
+
+  wash_payment_backend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${WASH_PAYMENT_HTTP_PORT:-8080}:8080
+    depends_on:
+      - wash_payment_postgres
+    environment:
+      LOG_LEVEL: ${WASH_PAYMENT_LOG_LEVEL:-INFO}
+      DB_USER: ${WASH_PAYMENT_DB_USER:-admin}
+      DB_PASSWORD: ${WASH_PAYMENT_DB_PASSWORD:-password}
+      DB_DATABASE: ${WASH_PAYMENT_DB_DATABASE:-wash_payment}

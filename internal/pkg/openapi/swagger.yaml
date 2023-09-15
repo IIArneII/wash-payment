@@ -1,0 +1,68 @@
+swagger: "2.0"
+info:
+  description: "Payment system service for self-service car washes"
+  title: wash-payment
+  version: 1.0.0
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - http
+securityDefinitions:
+  authKey:
+    description: Session token inside Authorization header.
+    type: apiKey
+    in: header
+    name: Authorization
+security:
+  - authKey: [ ]
+
+paths:
+  /healthCheck:
+    get:
+      tags:
+        - Standard
+      security:
+        - { }
+      operationId: healthCheck
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+
+responses:
+  BadRequest:
+    description: Bad request
+    schema:
+      $ref: "#/definitions/Error"
+  Forbidden:
+    description: Forbidden
+    schema:
+      $ref: "#/definitions/Error"
+  NotFound:
+    description: Not found
+    schema:
+      $ref: "#/definitions/Error"
+  InternalError:
+    description: Internal error
+    schema:
+      $ref: "#/definitions/Error"
+
+definitions:
+  Error:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        description: Either same as HTTP Status Code OR >= 600
+        type: integer
+        format: int32
+      message:
+        type: string
