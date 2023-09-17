@@ -1,6 +1,8 @@
 package app
 
-import "wash-payment/internal/entity"
+import (
+	"wash-payment/internal/entity"
+)
 
 type (
 	Auth struct {
@@ -13,5 +15,13 @@ type (
 		CreationTimestamp    int64
 		LastLogInTimestamp   int64
 		LastRefreshTimestamp int64
+	}
+
+	Dal struct {
+		UserRepo UserRepo
+	}
+
+	Services struct {
+		UserService UserService
 	}
 )

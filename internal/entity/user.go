@@ -13,9 +13,22 @@ type (
 		OrganizationID *uuid.UUID
 		Deleted        bool
 	}
-)
 
-type Role string
+	UserCreation struct {
+		ID             string
+		Email          string
+		Name           string
+		OrganizationID *uuid.UUID
+	}
+
+	UserUpdate struct {
+		ID    string
+		Email *string
+		Name  *string
+	}
+
+	Role string
+)
 
 const (
 	SystemManagerRole Role = "systemManager"

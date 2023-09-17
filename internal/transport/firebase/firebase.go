@@ -24,8 +24,8 @@ type FirebaseService interface {
 }
 
 type firebaseService struct {
-	auth    *auth.Client
 	userSvc app.UserService
+	auth    *auth.Client
 	l       *zap.SugaredLogger
 }
 
@@ -76,7 +76,7 @@ func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
 		return nil, ErrUnauthorized
 	}
 
-	user, err := svc.userSvc.GetById(ctx, fbUser.UID)
+	user, err := svc.userSvc.Get(ctx, fbUser.UID)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}

@@ -22,7 +22,7 @@ type (
 	}
 
 	DBConfig struct {
-		Host          string `env:"DB_HOST" envDefault:"postgres"`
+		Host          string `env:"DB_HOST" envDefault:"wash_payment_postgres"`
 		Port          int    `env:"DB_PORT" envDefault:"5432"`
 		Database      string `env:"DB_DATABASE" envDefault:"wash_payment"`
 		User          string `env:"DB_USER" envDefault:"admin"`
@@ -43,21 +43,21 @@ type (
 	}
 )
 
-func NewConfig(configFiles ...string) (*Config, error) {
+func NewConfig(configFiles ...string) (Config, error) {
 	var c Config
 	err := godotenv.Load(configFiles...)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return nil, err
+			return Config{}, err
 		}
 	}
 
 	err = env.ParseWithOptions(&c, env.Options{RequiredIfNoDef: true})
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 
-	return &c, nil
+	return c, nil
 }
 
 func (c DBConfig) DSN() string {
