@@ -42,7 +42,7 @@ func main() {
 	dal := dal.NewDal(l, dbConn)
 	services := services.NewServices(l, dal)
 
-	authSvc, err := firebase.New(cfg.FirebaseConfig.FirebaseKeyFilePath, l, services.UserService)
+	authSvc, err := firebase.New(l, cfg.FirebaseConfig.FirebaseKeyFilePath, services.UserService)
 
 	errc := make(chan error)
 	go runHTTPServer(errc, l, cfg, services, authSvc)

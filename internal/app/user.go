@@ -9,7 +9,8 @@ import (
 type (
 	UserService interface {
 		Get(ctx context.Context, auth Auth, userID string) (entity.User, error)
-		GetList(ctx context.Context, auth Auth, pagination entity.BaseFilter) ([]entity.User, error)
+		GetAuth(ctx context.Context, userID string) (entity.User, error)
+		GetList(ctx context.Context, auth Auth, filter entity.BaseFilter) ([]entity.User, error)
 		Create(ctx context.Context, auth Auth, userCreation entity.UserCreation) (entity.User, error)
 		Update(ctx context.Context, auth Auth, userModel entity.UserUpdate) error
 		Delete(ctx context.Context, auth Auth, userID string) error

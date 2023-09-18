@@ -29,7 +29,7 @@ type firebaseService struct {
 	l       *zap.SugaredLogger
 }
 
-func New(keyFilePath string, l *zap.SugaredLogger, userSvc app.UserService) (FirebaseService, error) {
+func New(l *zap.SugaredLogger, keyFilePath string, userSvc app.UserService) (FirebaseService, error) {
 	keyFilePath, err := filepath.Abs(keyFilePath)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
 		return nil, ErrUnauthorized
 	}
 
-	user, err := svc.userSvc.Get(ctx, fbUser.UID)
+	user, err := svc.userSvc.GetAuth(ctx, fbUser.UID)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}

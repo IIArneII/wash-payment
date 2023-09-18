@@ -46,8 +46,10 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/powerman/structlog v0.7.3 // indirect
+	github.com/rabbitmq/amqp091-go v1.7.0 // indirect
 	github.com/rs/cors v1.10.0 // indirect
 	github.com/sebest/xff v0.0.0-20210106013422-671bd2870b3a // indirect
+	github.com/wagslane/go-rabbitmq v0.12.4 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect

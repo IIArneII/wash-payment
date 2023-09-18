@@ -10,7 +10,11 @@ func (s *userService) Get(ctx context.Context, auth app.Auth, userID string) (en
 	return entity.User{}, nil
 }
 
-func (s *userService) GetList(ctx context.Context, auth app.Auth, pagination entity.BaseFilter) ([]entity.User, error) {
+func (s *userService) GetAuth(ctx context.Context, userID string) (entity.User, error) {
+	return entity.User{}, nil
+}
+
+func (s *userService) GetList(ctx context.Context, auth app.Auth, filter entity.BaseFilter) ([]entity.User, error) {
 	return make([]entity.User, 0), nil
 }
 
