@@ -34,8 +34,8 @@ type (
 	RabbitMQConfig struct {
 		Port     int    `env:"RABBIT_PORT" envDefault:"5672"`
 		Host     string `env:"RABBIT_HOST" envDefault:"wash_rabbit"`
-		User     string `env:"RABBIT_USER" envDefault:"wash_payment_svc"`
-		Password string `env:"RABBIT_PASSWORD" envDefault:"wash_payment_svc"`
+		User     string `env:"RABBIT_USER" envDefault:"wash_bonus_svc"`
+		Password string `env:"RABBIT_PASSWORD" envDefault:"wash_bonus_svc"`
 	}
 
 	FirebaseConfig struct {

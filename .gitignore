@@ -21,3 +21,5 @@
 go.work
 
 fb_key.json
+environment
+.vscode

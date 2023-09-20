@@ -12,7 +12,7 @@ WORKDIR /build
 COPY . .
 
 RUN go mod download
-RUN go build -ldflags="-s -w" -o /app/wash-payment cmd/wash-payment
+RUN go build -ldflags="-s -w" -o /app/wash-payment cmd/main.go
 
 FROM alpine
 
@@ -25,4 +25,4 @@ COPY internal/migrations internal/migrations
 COPY --from=builder /app/wash-payment wash-payment
 
 EXPOSE 8080
-CMD ["wash-payment"]
+CMD ["/app/wash-payment"]

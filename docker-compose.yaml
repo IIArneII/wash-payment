@@ -1,7 +1,8 @@
-version: "3.2"
+version: "3.6"
 
 services:
   wash_payment_postgres:
+    container_name: wash_payment_postgres
     image: postgres:14.5
     restart: always
     environment:
@@ -12,8 +13,10 @@ services:
       - wash_payment_postgresql:/var/lib/postgresql/data
     ports:
       - "${WASH_PAYMENT_DB_PORT:-5432}:5432"
+    network_mode: "share_business_default"
   
   wash_payment_pgadmin:
+    container_name: wash_payment_pgadmin
     image: dpage/pgadmin4:4
     restart: always
     environment:
@@ -21,8 +24,10 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${WASH_PAYMENT_PGADMIN_PASSWORD:-password}
     ports:
       - ${WASH_PAYMENT_PGADMIN_PORT:-8085}:80
+    network_mode: "share_business_default"
 
   wash_payment_backend:
+    container_name: wash_payment_backend
     build:
       context: ./
       dockerfile: Dockerfile
@@ -36,3 +41,8 @@ services:
       DB_USER: ${WASH_PAYMENT_DB_USER:-admin}
       DB_PASSWORD: ${WASH_PAYMENT_DB_PASSWORD:-password}
       DB_DATABASE: ${WASH_PAYMENT_DB_DATABASE:-wash_payment}
+    network_mode: "share_business_default"
+  
+volumes:
+  wash_payment_postgresql:
+    driver: local
