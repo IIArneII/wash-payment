@@ -17,8 +17,8 @@ type (
 
 	OrganizationRepo interface {
 		Get(ctx context.Context, organizationID string) (dbmodels.Organization, error)
-		GetList(ctx context.Context, filter dbmodels.OrganizationFilter) ([]dbmodels.Organization, error)
-		Create(ctx context.Context, organizationCreation dbmodels.OrganizationCreation) (dbmodels.Organization, error)
+		GetList(ctx context.Context, filter dbmodels.BaseFilter) ([]dbmodels.Organization, error)
+		Create(ctx context.Context, organizationCreation dbmodels.Organization) (dbmodels.Organization, error)
 		Update(ctx context.Context, organizationUpdate dbmodels.OrganizationUpdate) error
 		Delete(ctx context.Context, organizationID string) error
 	}

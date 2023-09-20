@@ -19,8 +19,6 @@ type (
 	UserRepo interface {
 		Get(ctx context.Context, userID string) (dbmodels.User, error)
 		GetList(ctx context.Context, filter dbmodels.BaseFilter) ([]dbmodels.User, error)
-		Create(ctx context.Context, userCreation dbmodels.UserCreation) (dbmodels.User, error)
-		Update(ctx context.Context, userModel dbmodels.UserUpdate) error
-		Delete(ctx context.Context, userID string) error
+		Create(ctx context.Context, userCreation dbmodels.User) (dbmodels.User, error)
 	}
 )

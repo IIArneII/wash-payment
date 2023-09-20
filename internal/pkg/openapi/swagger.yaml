@@ -23,8 +23,6 @@ paths:
     get:
       tags:
         - Standard
-      security:
-        - { }
       operationId: healthCheck
       responses:
         200:

@@ -2,7 +2,10 @@ package user
 
 import (
 	"context"
+	"errors"
 	"wash-payment/internal/app"
+	"wash-payment/internal/conversions"
+	"wash-payment/internal/dal/dbmodels"
 	"wash-payment/internal/entity"
 )
 
@@ -11,7 +14,15 @@ func (s *userService) Get(ctx context.Context, auth app.Auth, userID string) (en
 }
 
 func (s *userService) GetAuth(ctx context.Context, userID string) (entity.User, error) {
-	return entity.User{}, nil
+	userFromDB, err := s.userRepo.Get(ctx, userID)
+	if err != nil {
+		if errors.Is(err, dbmodels.ErrNotFound) {
+			err = app.ErrNotFound
+		}
+		return entity.User{}, err
+	}
+
+	return conversions.UserFromDb(userFromDB), nil
 }
 
 func (s *userService) GetList(ctx context.Context, auth app.Auth, filter entity.BaseFilter) ([]entity.User, error) {

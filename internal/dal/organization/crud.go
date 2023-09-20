@@ -9,11 +9,11 @@ func (r *organizationRepo) Get(ctx context.Context, organizationID string) (dbmo
 	return dbmodels.Organization{}, nil
 }
 
-func (r *organizationRepo) GetList(ctx context.Context, filter dbmodels.OrganizationFilter) ([]dbmodels.Organization, error) {
+func (r *organizationRepo) GetList(ctx context.Context, filter dbmodels.BaseFilter) ([]dbmodels.Organization, error) {
 	return make([]dbmodels.Organization, 1), nil
 }
 
-func (r *organizationRepo) Create(ctx context.Context, userCreation dbmodels.OrganizationCreation) (dbmodels.Organization, error) {
+func (r *organizationRepo) Create(ctx context.Context, userCreation dbmodels.Organization) (dbmodels.Organization, error) {
 	return dbmodels.Organization{}, nil
 }
 
