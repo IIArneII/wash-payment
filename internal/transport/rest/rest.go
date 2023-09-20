@@ -42,7 +42,7 @@ func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, 
 	api.Logger = svc.l.Infof
 	api.AuthKeyAuth = svc.auth.Auth
 
-	api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(healthCheck)
+	api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(svc.healthCheck)
 
 	l.Info("Hendlers initialized")
 
@@ -85,7 +85,8 @@ func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, 
 	return server, nil
 }
 
-func healthCheck(params standard.HealthCheckParams, profile *app.Auth) standard.HealthCheckResponder {
+func (svc *service) healthCheck(params standard.HealthCheckParams, profile *app.Auth) standard.HealthCheckResponder {
+	svc.l.Info(profile.User.ID)
 	return standard.NewHealthCheckOK().WithPayload(&standard.HealthCheckOKBody{Ok: true})
 }
 

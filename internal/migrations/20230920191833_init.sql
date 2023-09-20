@@ -3,8 +3,7 @@
 
 CREATE TYPE USER_ROLE_ENUM AS ENUM ('system_manager', 'admin');
 
-create table organizations
-(
+create table organizations (
     id          uuid    PRIMARY KEY,
     name        TEXT    NOT NULL,
     description TEXT,
@@ -16,7 +15,7 @@ CREATE TABLE users (
     name            TEXT           NOT NULL,
     email           TEXT           NOT NULL,
     role            USER_ROLE_ENUM NOT NULL,
-    organization_id uuid           REFERENCES organizations(id),
+    organization_id uuid           REFERENCES organizations(id)
 );
 -- +goose StatementEnd
 

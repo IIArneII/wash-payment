@@ -36,9 +36,6 @@ func init() {
   "paths": {
     "/healthCheck": {
       "get": {
-        "security": [
-          {}
-        ],
         "tags": [
           "Standard"
         ],
@@ -137,9 +134,6 @@ func init() {
   "paths": {
     "/healthCheck": {
       "get": {
-        "security": [
-          {}
-        ],
         "tags": [
           "Standard"
         ],

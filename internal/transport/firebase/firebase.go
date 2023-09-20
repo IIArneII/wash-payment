@@ -57,6 +57,8 @@ func NewFirebaseService(l *zap.SugaredLogger, keyFilePath string, userSvc app.Us
 }
 
 func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
+	svc.l.Infof("token: %s", bearer)
+
 	ctx, cancel := context.WithTimeout(context.Background(), authTimeout)
 	defer cancel()
 
@@ -70,16 +72,20 @@ func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
+	svc.l.Infof("uid: %s", token.UID)
 
 	fbUser, err := svc.auth.GetUser(ctx, token.UID)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
+	svc.l.Infof("uid: %s", fbUser.UID)
 
 	user, err := svc.userSvc.GetAuth(ctx, fbUser.UID)
 	if err != nil {
+		svc.l.Infof("err: %w", err)
 		return nil, ErrUnauthorized
 	}
+	svc.l.Infof("user: %s", user.ID)
 
 	return &app.Auth{
 		User:         user,
