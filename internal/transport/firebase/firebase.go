@@ -29,7 +29,7 @@ type firebaseService struct {
 	l       *zap.SugaredLogger
 }
 
-func New(l *zap.SugaredLogger, keyFilePath string, userSvc app.UserService) (FirebaseService, error) {
+func NewFirebaseService(l *zap.SugaredLogger, keyFilePath string, userSvc app.UserService) (FirebaseService, error) {
 	keyFilePath, err := filepath.Abs(keyFilePath)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ import (
 	"wash-payment/internal/pkg/logger"
 	"wash-payment/internal/services"
 	"wash-payment/internal/transport/firebase"
+	"wash-payment/internal/transport/rabbit"
 	"wash-payment/internal/transport/rest"
 
 	"go.uber.org/zap"
@@ -42,7 +43,17 @@ func main() {
 	dal := dal.NewDal(l, dbConn)
 	services := services.NewServices(l, dal)
 
-	authSvc, err := firebase.New(l, cfg.FirebaseConfig.FirebaseKeyFilePath, services.UserService)
+	authSvc, err := firebase.NewFirebaseService(l, cfg.FirebaseConfig.FirebaseKeyFilePath, services.UserService)
+	if err != nil {
+		log.Fatalln("Init firebase service: ", err)
+	}
+	l.Info("Connected firebase")
+
+	_, err = rabbit.NewRabbitService(l, cfg.RabbitMQConfig, services.RabbitService)
+	if err != nil {
+		log.Fatalln("Init rabbit service: ", err)
+	}
+	l.Info("Connected rabbit")
 
 	errc := make(chan error)
 	go runHTTPServer(errc, l, cfg, services, authSvc)

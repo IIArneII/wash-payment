@@ -3,5 +3,5 @@ package vo
 type RoutingKey string
 
 const (
-	WashBonusRoutingKey RoutingKey = "wash_bonus"
+	WashPaymentRoutingKey RoutingKey = "wash_payment"
 )

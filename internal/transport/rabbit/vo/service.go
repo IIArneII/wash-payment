@@ -3,5 +3,5 @@ package vo
 type Service string
 
 const (
-	WashBonusService Service = "wash_bonus_service"
+	WashPaymentService Service = "wash_payment_service"
 )

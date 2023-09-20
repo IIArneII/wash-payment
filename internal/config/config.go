@@ -32,10 +32,10 @@ type (
 	}
 
 	RabbitMQConfig struct {
-		Port     int    `env:"RABBIT_SERVICE_PORT" envDefault:"5672"`
-		Url      string `env:"RABBIT_SERVICE" envDefault:"wash_rabbit"`
-		User     string `env:"RABBIT_SERVICE_USER" envDefault:"wash_bonus_svc"`
-		Password string `env:"RABBIT_SERVICE_PASSWORD" envDefault:"wash_bonus_svc"`
+		Port     int    `env:"RABBIT_PORT" envDefault:"5672"`
+		Host     string `env:"RABBIT_HOST" envDefault:"wash_rabbit"`
+		User     string `env:"RABBIT_USER" envDefault:"wash_payment_svc"`
+		Password string `env:"RABBIT_PASSWORD" envDefault:"wash_payment_svc"`
 	}
 
 	FirebaseConfig struct {
@@ -63,4 +63,8 @@ func NewConfig(configFiles ...string) (Config, error) {
 func (c DBConfig) DSN() string {
 	return fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable",
 		c.User, c.Password, c.Database, c.Host, c.Port)
+}
+
+func (c RabbitMQConfig) DSN() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%d/", c.User, c.Password, c.Host, c.Port)
 }
