@@ -7,6 +7,7 @@ import (
 	"wash-payment/internal/config"
 
 	"github.com/gocraft/dbr/v2"
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 )
 
