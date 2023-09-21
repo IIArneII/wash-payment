@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	levelInfo    = "info"
-	levelWarning = "warning"
-	levelError   = "error"
+	LevelInfo    = "info"
+	LevelWarning = "warning"
+	LevelError   = "error"
 )
 
 func NewLogger(level string) (l *zap.SugaredLogger, err error) {
@@ -18,11 +18,11 @@ func NewLogger(level string) (l *zap.SugaredLogger, err error) {
 	cfg.DisableCaller = true
 
 	switch strings.ToLower(level) {
-	case levelInfo:
+	case LevelInfo:
 		cfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-	case levelWarning:
+	case LevelWarning:
 		cfg.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
-	case levelError:
+	case LevelError:
 		cfg.Level = zap.NewAtomicLevelAt(zap.ErrorLevel)
 	default:
 		cfg = zap.NewDevelopmentConfig()

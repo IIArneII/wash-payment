@@ -62,7 +62,7 @@ func (r *userRepo) Create(ctx context.Context, userCreation dbmodels.User) (dbmo
 	err = tx.InsertInto(dbmodels.UsersTable).
 		Columns("id", "email", "name", "role", "organization_id").
 		Record(userCreation).
-		Returning("*").
+		Returning("id", "email", "name", "role", "organization_id").
 		LoadContext(ctx, &dbUser)
 
 	if err != nil {

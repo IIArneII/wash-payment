@@ -27,7 +27,7 @@ func main() {
 	}
 	l.Info("Logger initialized")
 
-	dbConn, err := db.InitDB(cfg.DB)
+	dbConn, err := db.InitDB(cfg.DB.DSN())
 	if err != nil {
 		l.Fatalln("Init db: ", err)
 	}
@@ -40,8 +40,8 @@ func main() {
 	}
 	l.Info("Migrations applied")
 
-	dal := dal.NewDal(l, dbConn)
-	services := services.NewServices(l, dal)
+	repositories := dal.NewRepositories(l, dbConn)
+	services := services.NewServices(l, repositories)
 
 	authSvc, err := firebase.NewFirebaseService(l, cfg.FirebaseConfig.FirebaseKeyFilePath, services.UserService)
 	if err != nil {

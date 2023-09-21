@@ -4,15 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"time"
-	"wash-payment/internal/config"
 
 	"github.com/gocraft/dbr/v2"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 )
 
-func InitDB(db config.DBConfig) (dbPool *dbr.Connection, err error) {
-	dbPool, err = dbr.Open("postgres", db.DSN(), nil)
+func InitDB(dsn string) (dbPool *dbr.Connection, err error) {
+	dbPool, err = dbr.Open("postgres", dsn, nil)
 	if err != nil {
 		return nil, err
 	}

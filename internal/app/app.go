@@ -17,7 +17,7 @@ type (
 		LastRefreshTimestamp int64
 	}
 
-	Dal struct {
+	Repositories struct {
 		UserRepo UserRepo
 	}
 

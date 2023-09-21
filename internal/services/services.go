@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewServices(l *zap.SugaredLogger, dal *app.Dal) *app.Services {
+func NewServices(l *zap.SugaredLogger, dal *app.Repositories) *app.Services {
 	return &app.Services{
 		UserService:   user.NewUserService(l, dal.UserRepo),
 		RabbitService: rabbit.NewRabbitService(l),

@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewDal(l *zap.SugaredLogger, db *dbr.Connection) *app.Dal {
-	return &app.Dal{
+func NewRepositories(l *zap.SugaredLogger, db *dbr.Connection) *app.Repositories {
+	return &app.Repositories{
 		UserRepo: user.NewRepo(l, db),
 	}
 }

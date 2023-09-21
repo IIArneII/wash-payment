@@ -4,11 +4,11 @@ import uuid "github.com/satori/go.uuid"
 
 type (
 	User struct {
-		ID             string     `db:"id"`
-		Email          string     `db:"email"`
-		Name           string     `db:"name"`
-		Role           Role       `db:"role"`
-		OrganizationID *uuid.UUID `db:"organization_id"`
+		ID             string        `db:"id"`
+		Email          string        `db:"email"`
+		Name           string        `db:"name"`
+		Role           Role          `db:"role"`
+		OrganizationID uuid.NullUUID `db:"organization_id"`
 	}
 )
 
