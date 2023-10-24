@@ -16,7 +16,7 @@ securityDefinitions:
     in: header
     name: Authorization
 security:
-  - authKey: [ ]
+  - authKey: []
 
 paths:
   /healthCheck:
@@ -24,6 +24,8 @@ paths:
       tags:
         - Standard
       operationId: healthCheck
+      summary: Health check
+      description: Checking the server health status.
       responses:
         200:
           description: OK
@@ -32,6 +34,53 @@ paths:
             properties:
               ok:
                 type: boolean
+  
+  /organizations/{id}:
+    get:
+      tags:
+        - Organizations
+      operationId: Get
+      summary: Get organization
+      description: Get information about the specified organization.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/Organization"
+        403: {$ref: '#/responses/Forbidden'}
+        404: {$ref: '#/responses/NotFound'}
+        default: {$ref: '#/responses/InternalError'}
+
+  /organizations/{id}/deposit:
+    post:
+      tags:
+        - Organizations
+      operationId: Deposit
+      summary: Top up balance
+      description: Increase the balance of the specified organization by the specified number of kopecks.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uuid
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/Deposit"
+      responses:
+        204:
+          description: OK
+        400: {$ref: '#/responses/BadRequest'}
+        403: {$ref: '#/responses/Forbidden'}
+        404: {$ref: '#/responses/NotFound'}
+        default: {$ref: '#/responses/InternalError'}
 
 responses:
   BadRequest:
@@ -64,3 +113,38 @@ definitions:
         format: int32
       message:
         type: string
+  
+  Deposit:
+    type: object
+    properties:
+      amount:
+        description: Amount in kopecks (RUB * 10^2)
+        type: integer
+        format: int64
+        minimum: 1
+    required:
+    - amount
+  
+  Organization:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      balance:
+        description: Balance in kopecks (RUB * 10^2)
+        type: integer
+        format: int64
+        minimum: 0
+    required:
+    - id
+    - name
+    - displayName
+    - description
+    - balance

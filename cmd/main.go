@@ -8,8 +8,9 @@ import (
 	"wash-payment/internal/pkg/db"
 	"wash-payment/internal/pkg/logger"
 	"wash-payment/internal/services"
+	"wash-payment/internal/services/rabbit"
 	"wash-payment/internal/transport/firebase"
-	"wash-payment/internal/transport/rabbit"
+	rabbitHandler "wash-payment/internal/transport/rabbit"
 	"wash-payment/internal/transport/rest"
 
 	"go.uber.org/zap"
@@ -18,65 +19,67 @@ import (
 func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {
-		log.Fatalln("Init config: ", err)
+		log.Fatalln("init config: ", err)
 	}
 
 	l, err := logger.NewLogger(cfg.LogLevel)
 	if err != nil {
-		log.Fatalln("Init logger: ", err)
+		log.Fatalln("init logger: ", err)
 	}
-	l.Info("Logger initialized")
+	l.Info("logger initialized")
 
 	dbConn, err := db.InitDB(cfg.DB.DSN())
 	if err != nil {
-		l.Fatalln("Init db: ", err)
+		l.Fatalln("init db: ", err)
 	}
 	defer dbConn.Close()
-	l.Info("Connected to db")
+	l.Info("connected to db")
 
 	err = db.UpMigrations(dbConn.DB, cfg.DB.MigrationsDir)
 	if err != nil {
-		l.Fatalln("Migrate db: ", err)
+		l.Fatalln("migrate db: ", err)
 	}
-	l.Info("Migrations applied")
+	l.Info("migrations applied")
 
 	repositories := dal.NewRepositories(l, dbConn)
 	services := services.NewServices(l, repositories)
 
 	authSvc, err := firebase.NewFirebaseService(l, cfg.FirebaseConfig.FirebaseKeyFilePath, services.UserService)
 	if err != nil {
-		log.Fatalln("Init firebase service: ", err)
+		log.Fatalln("init firebase service: ", err)
 	}
-	l.Info("Connected firebase")
+	l.Info("connected firebase")
 
-	_, err = rabbit.NewRabbitService(l, cfg.RabbitMQConfig, services.RabbitService)
+	rabbitSvc := rabbit.NewService(l, services)
+
+	_, err = rabbitHandler.NewRabbitService(l, cfg.RabbitMQConfig, rabbitSvc)
 	if err != nil {
-		log.Fatalln("Init rabbit service: ", err)
+		log.Fatalln("init rabbit service: ", err)
 	}
-	l.Info("Connected rabbit")
+	l.Info("connected rabbit")
 
 	errc := make(chan error)
 	go runHTTPServer(errc, l, cfg, services, authSvc)
 
 	err = <-errc
 	if err != nil {
-		l.Fatalln("HTTP server: ", err)
+		l.Fatalln("http server: ", err)
 	}
 }
 
 func runHTTPServer(errc chan error, l *zap.SugaredLogger, cfg config.Config, services *app.Services, authSvc firebase.FirebaseService) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Fatalln("Panic: ", r)
+			l.Fatalln("panic: ", r)
 		}
 	}()
 
-	l.Info("HTTP server started")
-	defer l.Info("HTTP server finished")
+	l.Info("http server started")
+	defer l.Info("http server finished")
 
 	server, err := rest.NewServer(l, cfg, services, authSvc)
 	if err != nil {
-		log.Fatalln("Init HTTP server: ", err)
+		l.Fatalln("Init http server: ", err)
 	}
 
 	errc <- server.Serve()

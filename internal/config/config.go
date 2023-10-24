@@ -28,7 +28,7 @@ type (
 		User          string `env:"DB_USER" envDefault:"admin"`
 		Password      string `env:"DB_PASSWORD" envDefault:"password"`
 		PingTimeout   int    `env:"DB_PING_TIMEOUT" envDefault:"10"`
-		MigrationsDir string `env:"DB_MIGRATIONS_DIR" envDefault:"internal/migrations"`
+		MigrationsDir string `env:"DB_MIGRATIONS_DIR" envDefault:"migrations"`
 	}
 
 	RabbitMQConfig struct {

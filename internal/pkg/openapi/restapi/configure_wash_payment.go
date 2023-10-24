@@ -11,6 +11,7 @@ import (
 
 	"wash-payment/internal/app"
 	"wash-payment/internal/pkg/openapi/restapi/operations"
+	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/standard"
 )
 
@@ -51,6 +52,16 @@ func configureAPI(api *operations.WashPaymentAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
+	if api.OrganizationsDepositHandler == nil {
+		api.OrganizationsDepositHandler = organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *app.Auth) organizations.DepositResponder {
+			return organizations.DepositNotImplemented()
+		})
+	}
+	if api.OrganizationsGetHandler == nil {
+		api.OrganizationsGetHandler = organizations.GetHandlerFunc(func(params organizations.GetParams, principal *app.Auth) organizations.GetResponder {
+			return organizations.GetNotImplemented()
+		})
+	}
 	if api.StandardHealthCheckHandler == nil {
 		api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams, principal *app.Auth) standard.HealthCheckResponder {
 			return standard.HealthCheckNotImplemented()

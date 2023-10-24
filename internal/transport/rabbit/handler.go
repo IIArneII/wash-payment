@@ -1,25 +1,72 @@
 package rabbit
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
-	"wash-payment/internal/transport/rabbit/vo"
+	"time"
+	"wash-payment/internal/transport/rabbit/entity"
 
 	"github.com/wagslane/go-rabbitmq"
 )
 
 func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
-	return rabbitmq.NackDiscard
+	cxt, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	switch entity.MessageType(d.Type) {
+	case entity.OrganizationMessageType:
+		var msg entity.Organization
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+		err = svc.rabbitSvc.UpsertOrganization(cxt, msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+	case entity.GroupMessageType:
+		var msg entity.Group
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+		err = svc.rabbitSvc.UpsertGroup(cxt, msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+	case entity.UserMessageType:
+		var msg entity.User
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+		err = svc.rabbitSvc.UpsertUser(cxt, msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+	default:
+		return rabbitmq.NackRequeue
+	}
+
+	// ТУТ Если в бд версия новее, то удаляем сообщение
+
+	return rabbitmq.Ack
 }
 
-func (svc *rabbitService) SendMessage(msg interface{}, service vo.Service, routingKey vo.RoutingKey, messageType vo.MessageType) error {
+func (svc *rabbitService) SendMessage(msg interface{}, service entity.Service, routingKey entity.RoutingKey, messageType entity.MessageType) error {
 	jsonMsg, err := json.Marshal(msg)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	switch service {
-	case vo.WashPaymentService:
+	case entity.AdminsExchange:
 		return svc.washPaymentPublisher.Publish(
 			jsonMsg,
 			[]string{string(routingKey)},
@@ -27,6 +74,6 @@ func (svc *rabbitService) SendMessage(msg interface{}, service vo.Service, routi
 			rabbitmq.WithPublishOptionsExchange(string(service)),
 		)
 	default:
-		return errors.New("Unknown service")
+		panic("Unknown service")
 	}
 }

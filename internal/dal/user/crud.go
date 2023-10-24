@@ -10,12 +10,14 @@ import (
 	"github.com/lib/pq"
 )
 
+var columns = []string{"id", "email", "name", "role", "organization_id", "version"}
+
 func (r *userRepo) Get(ctx context.Context, userID string) (dbmodels.User, error) {
 	op := "failed to get user by ID: %w"
 
 	var dbUser dbmodels.User
 	err := r.db.NewSession(nil).
-		Select("*").
+		Select(columns...).
 		From(dbmodels.UsersTable).
 		Where("id = ?", userID).
 		LoadOneContext(ctx, &dbUser)
@@ -31,38 +33,15 @@ func (r *userRepo) Get(ctx context.Context, userID string) (dbmodels.User, error
 	return dbmodels.User{}, fmt.Errorf(op, err)
 }
 
-func (r *userRepo) GetList(ctx context.Context, filter dbmodels.BaseFilter) ([]dbmodels.User, error) {
-	op := "failed to get users list: %w"
-
-	var dbUsers []dbmodels.User
-	_, err := r.db.NewSession(nil).
-		Select("*").
-		From(dbmodels.UsersTable).
-		Limit(uint64(filter.Limit)).
-		Offset(uint64(filter.Offset)).
-		LoadContext(ctx, &dbUsers)
-
-	if err != nil {
-		return nil, fmt.Errorf(op, err)
-	}
-
-	return dbUsers, nil
-}
-
-func (r *userRepo) Create(ctx context.Context, userCreation dbmodels.User) (dbmodels.User, error) {
+func (r *userRepo) Create(ctx context.Context, user dbmodels.User) (dbmodels.User, error) {
 	op := "failed to create user: %w"
 
-	tx, err := r.db.NewSession(nil).BeginTx(ctx, nil)
-	if err != nil {
-		return dbmodels.User{}, fmt.Errorf(op, err)
-	}
-	defer tx.RollbackUnlessCommitted()
-
 	var dbUser dbmodels.User
-	err = tx.InsertInto(dbmodels.UsersTable).
-		Columns("id", "email", "name", "role", "organization_id").
-		Record(userCreation).
-		Returning("id", "email", "name", "role", "organization_id").
+	err := r.db.NewSession(nil).
+		InsertInto(dbmodels.UsersTable).
+		Columns(columns...).
+		Record(user).
+		Returning(columns...).
 		LoadContext(ctx, &dbUser)
 
 	if err != nil {
@@ -73,9 +52,46 @@ func (r *userRepo) Create(ctx context.Context, userCreation dbmodels.User) (dbmo
 		return dbmodels.User{}, fmt.Errorf(op, err)
 	}
 
-	if err = tx.Commit(); err != nil {
-		return dbmodels.User{}, fmt.Errorf(op, err)
+	return dbUser, nil
+}
+
+func (r *userRepo) Update(ctx context.Context, userID string, userUpdate dbmodels.UserUpdate) error {
+	op := "failed to update user: %w"
+
+	query := r.db.NewSession(nil).
+		Update(dbmodels.UsersTable).
+		Where("id = ?", userID)
+
+	if userUpdate.Role != nil {
+		query.Set("role", userUpdate.Role)
+	}
+	if userUpdate.Name != nil {
+		query.Set("name", userUpdate.Name)
+	}
+	if userUpdate.Email != nil {
+		query.Set("email", userUpdate.Email)
+	}
+	if userUpdate.Version != nil {
+		query.Set("version", userUpdate.Version)
+		query.Where("version <= ?", userUpdate.Version)
 	}
 
-	return dbUser, nil
+	result, err := query.ExecContext(ctx)
+	if err != nil {
+		if errors.Is(err, dbr.ErrColumnNotSpecified) {
+			err = dbmodels.ErrEmptyUpdate
+		}
+
+		return fmt.Errorf(op, err)
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf(op, err)
+	}
+	if count == 0 {
+		return dbmodels.ErrNotFound
+	}
+
+	return nil
 }

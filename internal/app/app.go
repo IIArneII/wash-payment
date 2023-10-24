@@ -1,7 +1,7 @@
 package app
 
 import (
-	"wash-payment/internal/entity"
+	"wash-payment/internal/app/entity"
 )
 
 type (
@@ -18,11 +18,15 @@ type (
 	}
 
 	Repositories struct {
-		UserRepo UserRepo
+		UserRepo         UserRepo
+		OrganizationRepo OrganizationRepo
+		GroupRepo        GroupRepo
+		TransactionRepo  TransactionRepo
 	}
 
 	Services struct {
-		UserService   UserService
-		RabbitService RabbitService
+		UserService         UserService
+		OrganizationService OrganizationService
+		GroupService        GroupService
 	}
 )

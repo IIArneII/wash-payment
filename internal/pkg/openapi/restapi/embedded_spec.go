@@ -36,9 +36,11 @@ func init() {
   "paths": {
     "/healthCheck": {
       "get": {
+        "description": "Checking the server health status.",
         "tags": [
           "Standard"
         ],
+        "summary": "Health check",
         "operationId": "healthCheck",
         "responses": {
           "200": {
@@ -54,9 +56,102 @@ func init() {
           }
         }
       }
+    },
+    "/organizations/{id}": {
+      "get": {
+        "description": "Get information about the specified organization.",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Organization"
+            }
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/organizations/{id}/deposit": {
+      "post": {
+        "description": "Increase the balance of the specified organization by the specified number of kopecks.",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Top up balance",
+        "operationId": "Deposit",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Deposit"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "Deposit": {
+      "type": "object",
+      "required": [
+        "amount"
+      ],
+      "properties": {
+        "amount": {
+          "description": "Amount in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        }
+      }
+    },
     "Error": {
       "type": "object",
       "required": [
@@ -70,6 +165,36 @@ func init() {
           "format": "int32"
         },
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "Organization": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "displayName",
+        "description",
+        "balance"
+      ],
+      "properties": {
+        "balance": {
+          "description": "Balance in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
           "type": "string"
         }
       }
@@ -134,9 +259,11 @@ func init() {
   "paths": {
     "/healthCheck": {
       "get": {
+        "description": "Checking the server health status.",
         "tags": [
           "Standard"
         ],
+        "summary": "Health check",
         "operationId": "healthCheck",
         "responses": {
           "200": {
@@ -152,9 +279,123 @@ func init() {
           }
         }
       }
+    },
+    "/organizations/{id}": {
+      "get": {
+        "description": "Get information about the specified organization.",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Organization"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{id}/deposit": {
+      "post": {
+        "description": "Increase the balance of the specified organization by the specified number of kopecks.",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Top up balance",
+        "operationId": "Deposit",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Deposit"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "Deposit": {
+      "type": "object",
+      "required": [
+        "amount"
+      ],
+      "properties": {
+        "amount": {
+          "description": "Amount in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        }
+      }
+    },
     "Error": {
       "type": "object",
       "required": [
@@ -168,6 +409,37 @@ func init() {
           "format": "int32"
         },
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "Organization": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "displayName",
+        "description",
+        "balance"
+      ],
+      "properties": {
+        "balance": {
+          "description": "Balance in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "description": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
           "type": "string"
         }
       }

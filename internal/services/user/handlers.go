@@ -4,39 +4,52 @@ import (
 	"context"
 	"errors"
 	"wash-payment/internal/app"
-	"wash-payment/internal/conversions"
+	"wash-payment/internal/app/conversions"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
-	"wash-payment/internal/entity"
 )
 
-func (s *userService) Get(ctx context.Context, auth app.Auth, userID string) (entity.User, error) {
-	return entity.User{}, nil
-}
-
-func (s *userService) GetAuth(ctx context.Context, userID string) (entity.User, error) {
+func (s *userService) Get(ctx context.Context, userID string) (entity.User, error) {
 	userFromDB, err := s.userRepo.Get(ctx, userID)
 	if err != nil {
 		if errors.Is(err, dbmodels.ErrNotFound) {
 			err = app.ErrNotFound
 		}
+
 		return entity.User{}, err
 	}
 
-	return conversions.UserFromDb(userFromDB), nil
+	return conversions.UserFromDB(userFromDB), nil
 }
 
-func (s *userService) GetList(ctx context.Context, auth app.Auth, filter entity.BaseFilter) ([]entity.User, error) {
-	return make([]entity.User, 0), nil
+func (s *userService) Create(ctx context.Context, user entity.User) (entity.User, error) {
+	dbUser := conversions.UserToDB(user)
+
+	newUser, err := s.userRepo.Create(ctx, dbUser)
+	if err != nil {
+		if errors.Is(err, dbmodels.ErrAlreadyExists) {
+			err = app.ErrAlreadyExists
+		}
+
+		return entity.User{}, err
+	}
+
+	return conversions.UserFromDB(newUser), nil
 }
 
-func (s *userService) Create(ctx context.Context, auth app.Auth, userCreation entity.UserCreation) (entity.User, error) {
-	return entity.User{}, nil
-}
+func (s *userService) Update(ctx context.Context, userID string, userUpdate entity.UserUpdate) error {
+	dbUserUpdate := conversions.UserUpdateToDB(userUpdate)
 
-func (s *userService) Update(ctx context.Context, auth app.Auth, userModel entity.UserUpdate) error {
-	return nil
-}
+	err := s.userRepo.Update(ctx, userID, dbUserUpdate)
+	if err != nil {
+		if errors.Is(err, dbmodels.ErrNotFound) {
+			err = app.ErrNotFound
+		} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+			err = app.ErrBadRequest
+		}
 
-func (s *userService) Delete(ctx context.Context, auth app.Auth, userID string) error {
+		return err
+	}
+
 	return nil
 }

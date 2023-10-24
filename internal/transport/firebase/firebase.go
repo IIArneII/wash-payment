@@ -80,7 +80,7 @@ func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
 	}
 	svc.l.Infof("uid: %s", fbUser.UID)
 
-	user, err := svc.userSvc.GetAuth(ctx, fbUser.UID)
+	user, err := svc.userSvc.Get(ctx, fbUser.UID)
 	if err != nil {
 		svc.l.Infof("err: %w", err)
 		return nil, ErrUnauthorized

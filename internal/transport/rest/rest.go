@@ -21,14 +21,16 @@ import (
 )
 
 type service struct {
-	l    *zap.SugaredLogger
-	auth firebase.FirebaseService
+	l        *zap.SugaredLogger
+	auth     firebase.FirebaseService
+	services *app.Services
 }
 
 func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, auth firebase.FirebaseService) (*restapi.Server, error) {
 	svc := &service{
-		l:    l,
-		auth: auth,
+		l:        l,
+		auth:     auth,
+		services: services,
 	}
 
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
@@ -43,6 +45,7 @@ func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, 
 	api.AuthKeyAuth = svc.auth.Auth
 
 	api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(svc.healthCheck)
+	svc.initOrganizationsHandlers(api)
 
 	l.Info("Hendlers initialized")
 

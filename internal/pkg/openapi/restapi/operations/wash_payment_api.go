@@ -20,6 +20,7 @@ import (
 	"github.com/go-openapi/swag"
 
 	"wash-payment/internal/app"
+	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/standard"
 )
 
@@ -45,6 +46,12 @@ func NewWashPaymentAPI(spec *loads.Document) *WashPaymentAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		OrganizationsDepositHandler: organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *app.Auth) organizations.DepositResponder {
+			return organizations.DepositNotImplemented()
+		}),
+		OrganizationsGetHandler: organizations.GetHandlerFunc(func(params organizations.GetParams, principal *app.Auth) organizations.GetResponder {
+			return organizations.GetNotImplemented()
+		}),
 		StandardHealthCheckHandler: standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams, principal *app.Auth) standard.HealthCheckResponder {
 			return standard.HealthCheckNotImplemented()
 		}),
@@ -98,6 +105,10 @@ type WashPaymentAPI struct {
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
 
+	// OrganizationsDepositHandler sets the operation handler for the deposit operation
+	OrganizationsDepositHandler organizations.DepositHandler
+	// OrganizationsGetHandler sets the operation handler for the get operation
+	OrganizationsGetHandler organizations.GetHandler
 	// StandardHealthCheckHandler sets the operation handler for the health check operation
 	StandardHealthCheckHandler standard.HealthCheckHandler
 
@@ -181,6 +192,12 @@ func (o *WashPaymentAPI) Validate() error {
 		unregistered = append(unregistered, "AuthorizationAuth")
 	}
 
+	if o.OrganizationsDepositHandler == nil {
+		unregistered = append(unregistered, "organizations.DepositHandler")
+	}
+	if o.OrganizationsGetHandler == nil {
+		unregistered = append(unregistered, "organizations.GetHandler")
+	}
 	if o.StandardHealthCheckHandler == nil {
 		unregistered = append(unregistered, "standard.HealthCheckHandler")
 	}
@@ -283,6 +300,14 @@ func (o *WashPaymentAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/organizations/{id}/deposit"] = organizations.NewDeposit(o.context, o.OrganizationsDepositHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/organizations/{id}"] = organizations.NewGet(o.context, o.OrganizationsGetHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

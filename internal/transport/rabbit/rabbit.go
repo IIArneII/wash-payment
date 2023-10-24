@@ -3,7 +3,7 @@ package rabbit
 import (
 	"wash-payment/internal/app"
 	"wash-payment/internal/config"
-	"wash-payment/internal/transport/rabbit/vo"
+	"wash-payment/internal/transport/rabbit/entity"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/wagslane/go-rabbitmq"
@@ -11,14 +11,14 @@ import (
 )
 
 type RabbitService interface {
-	SendMessage(msg interface{}, service vo.Service, routingKey vo.RoutingKey, messageType vo.MessageType) error
+	SendMessage(msg interface{}, service entity.Service, routingKey entity.RoutingKey, messageType entity.MessageType) error
 }
 
 type rabbitService struct {
 	l *zap.SugaredLogger
 
 	washPaymentPublisher *rabbitmq.Publisher
-	washPaymentConsumer  *rabbitmq.Consumer
+	adminsConsumer       *rabbitmq.Consumer
 	rabbitSvc            app.RabbitService
 }
 
@@ -57,7 +57,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		conn,
 		rabbitmq.WithPublisherOptionsLogging,
 		rabbitmq.WithPublisherOptionsExchangeDeclare,
-		rabbitmq.WithPublisherOptionsExchangeName(string(vo.WashPaymentService)),
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.AdminsExchange)),
 		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
 		rabbitmq.WithPublisherOptionsExchangeDurable,
 	)
@@ -65,14 +65,13 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
-	svc.washPaymentConsumer, err = rabbitmq.NewConsumer(
+	svc.adminsConsumer, err = rabbitmq.NewConsumer(
 		conn,
 		svc.processMessage,
-		string(vo.WashPaymentRoutingKey),
+		string(entity.WashPaymentRoutingKey),
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
-		rabbitmq.WithConsumerOptionsExchangeName(string(vo.WashPaymentService)),
-		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
-		rabbitmq.WithConsumerOptionsRoutingKey(string(vo.WashPaymentRoutingKey)),
+		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
+		rabbitmq.WithConsumerOptionsExchangeKind("fanout"),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
 	if err != nil {

@@ -2,7 +2,8 @@ package services
 
 import (
 	"wash-payment/internal/app"
-	"wash-payment/internal/services/rabbit"
+	"wash-payment/internal/services/group"
+	"wash-payment/internal/services/organization"
 	"wash-payment/internal/services/user"
 
 	"go.uber.org/zap"
@@ -10,7 +11,8 @@ import (
 
 func NewServices(l *zap.SugaredLogger, dal *app.Repositories) *app.Services {
 	return &app.Services{
-		UserService:   user.NewUserService(l, dal.UserRepo),
-		RabbitService: rabbit.NewRabbitService(l),
+		UserService:         user.NewService(l, dal.UserRepo),
+		OrganizationService: organization.NewService(l, dal.OrganizationRepo, dal.TransactionRepo),
+		GroupService:        group.NewService(l, dal.GroupRepo),
 	}
 }

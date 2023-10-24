@@ -24,3 +24,4 @@ fb_key.json
 environment
 .vscode
 main
+.env
