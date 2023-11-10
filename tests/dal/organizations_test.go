@@ -56,7 +56,7 @@ func TestUpdateOrganization(tt *testing.T) {
 	newName := randomdata.FirstName(randomdata.Male)
 	newDescription := randomdata.RandStringRunes(50)
 	newDisplayName := uuid.NewV4().String()
-	newVersion := 2
+	newVersion := int64(2)
 	organizationUpdate := dbmodels.OrganizationUpdate{
 		Name:        &newName,
 		DisplayName: &newDisplayName,

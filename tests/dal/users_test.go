@@ -54,7 +54,7 @@ func TestUpdateUser(tt *testing.T) {
 	t.Nil(err)
 
 	newRole := dbmodels.SystemManagerRole
-	newVersion := 2
+	newVersion := int64(2)
 	newEmail := randomdata.Email()
 	newName := randomdata.FullName(randomdata.RandomGender)
 	updateUser := dbmodels.UserUpdate{

@@ -50,11 +50,23 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			return rabbitmq.NackRequeue
 		}
 
+		//NEW
+	case entity.TransactionMessageType:
+		var msg entity.Payment
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+
+		err = svc.rabbitSvc.ProcessWithdrawal(cxt, msg.Organization, msg.Amount)
+		if err != nil {
+			return rabbitmq.NackRequeue
+		}
+		_ = svc.SendMessage(err, entity.AdminsExchange, entity.WashPaymentRoutingKey, entity.TransactionMessageType)
+
 	default:
 		return rabbitmq.NackRequeue
 	}
-
-	// ТУТ Если в бд версия новее, то удаляем сообщение
 
 	return rabbitmq.Ack
 }

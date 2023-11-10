@@ -16,6 +16,31 @@ import (
 	"go.uber.org/zap"
 )
 
+/*
+TODO
+Основные задачи
+
+	1)Добавить методы списания средств по group_id или organisation_id(service/rabbit):
+
+	В кролик хендлер internal/transport/rabbit/handler.go приходит сообщение  о том, что с такой то организации для такой то группы
+	необходим списать столько то денег.
+
+	Кролик хендлер вызывает соответсвующий метод кролик сервиса internal/services/rabbit,
+	который вызывает метод списания средств для указанной организации internal/services/organization/handlers.go/Withdrawal.
+
+	В зависимости от того, вернул ли Withdrawal ошибку (например, если недостаточно денег), или не вернул,
+	создаешь новое сообщение для кролика с результатом списания средств и пушишь его в кролик.
+
+	DONE2)Подтянуть Бд с ShareBuisnes(transport/rabbit/sendMessage)
+
+	DONE3)Добавить Upserve/Update методы из Постгрес в Круды (К Рудольфу обратиться) (Services->Заменить Update и Create на один, который
+	вызовет нужный метод из repo)+
+
+	DONE4)Переписать тесты для 3 пункта
+
+	5) Протестировать организации (получение через рэббит, обновление, что все встает в бонусную и что бонусная делает рассылку)
+*/
+
 func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {
@@ -53,6 +78,7 @@ func main() {
 	rabbitSvc := rabbit.NewService(l, services)
 
 	_, err = rabbitHandler.NewRabbitService(l, cfg.RabbitMQConfig, rabbitSvc)
+
 	if err != nil {
 		log.Fatalln("init rabbit service: ", err)
 	}

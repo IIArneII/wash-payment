@@ -24,36 +24,36 @@ func (s *groupService) Get(ctx context.Context, groupID uuid.UUID) (entity.Group
 	return conversions.GroupFromDB(groupFromDB), nil
 }
 
-func (s *groupService) Create(ctx context.Context, group entity.Group) (entity.Group, error) {
-	dbGroup := conversions.GroupToDB(group)
+func (s *groupService) Upsert(ctx context.Context, group entity.Group, groupID uuid.UUID, groupUpdate entity.GroupUpdate) (entity.Group, error) {
+	if groupID != uuid.Nil {
+		dbGroupUpdate := conversions.GroupUpdateToDB(groupUpdate)
 
-	newOrganization, err := s.groupRepo.Create(ctx, dbGroup)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			err = app.ErrAlreadyExists
+		err := s.groupRepo.Update(ctx, groupID, dbGroupUpdate)
+		if err != nil {
+			if errors.Is(err, dbmodels.ErrNotFound) {
+				err = app.ErrNotFound
+			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+				err = app.ErrBadRequest
+			}
+
+			return entity.Group{}, err
 		}
 
-		return entity.Group{}, err
-	}
+		return entity.Group{}, nil
+	} else {
+		dbGroup := conversions.GroupToDB(group)
 
-	return conversions.GroupFromDB(newOrganization), nil
-}
+		newOrganization, err := s.groupRepo.Create(ctx, dbGroup)
+		if err != nil {
+			if errors.Is(err, dbmodels.ErrAlreadyExists) {
+				err = app.ErrAlreadyExists
+			}
 
-func (s *groupService) Update(ctx context.Context, groupID uuid.UUID, groupUpdate entity.GroupUpdate) error {
-	dbGroupUpdate := conversions.GroupUpdateToDB(groupUpdate)
-
-	err := s.groupRepo.Update(ctx, groupID, dbGroupUpdate)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-			err = app.ErrBadRequest
+			return entity.Group{}, err
 		}
 
-		return err
+		return conversions.GroupFromDB(newOrganization), nil
 	}
-
-	return nil
 }
 
 func (s *groupService) Delete(ctx context.Context, groupID uuid.UUID) error {

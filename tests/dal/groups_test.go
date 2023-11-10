@@ -66,7 +66,7 @@ func TestUpdateGroup(tt *testing.T) {
 
 	newName := randomdata.FirstName(randomdata.Male)
 	newDescription := randomdata.RandStringRunes(50)
-	newVersion := 2
+	newVersion := int64(2)
 	groupUpdate := dbmodels.GroupUpdate{
 		Name:        &newName,
 		Description: &newDescription,

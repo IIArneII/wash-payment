@@ -15,7 +15,7 @@ func generateUser(role dbmodels.Role, organizationID uuid.NullUUID, version int)
 		Name:           randomdata.FullName(randomdata.RandomGender),
 		Role:           role,
 		OrganizationID: organizationID,
-		Version:        version,
+		Version:        int64(version),
 	}
 }
 
@@ -26,7 +26,7 @@ func generateOrganization(balance int64, version int) dbmodels.Organization {
 		DisplayName: uuid.NewV4().String(),
 		Description: randomdata.RandStringRunes(50),
 		Deleted:     false,
-		Version:     version,
+		Version:     int64(version),
 		Balance:     balance,
 	}
 }
@@ -38,7 +38,7 @@ func generateGroup(organizationID uuid.UUID, version int) dbmodels.Group {
 		Name:           randomdata.FirstName(randomdata.Male),
 		Description:    randomdata.RandStringRunes(50),
 		Deleted:        false,
-		Version:        version,
+		Version:        int64(version),
 	}
 }
 

@@ -78,5 +78,10 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
+	err = svc.SendMessage(nil, entity.WashPayment, entity.WashPaymentRoutingKey, entity.DataMessageType)
+	if err != nil {
+		return nil, err
+	}
+
 	return svc, nil
 }
