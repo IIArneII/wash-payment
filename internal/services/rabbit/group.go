@@ -3,7 +3,7 @@ package rabbit
 import (
 	"context"
 	"wash-payment/internal/app/conversions"
-	et "wash-payment/internal/app/entity"
+	globalEntity "wash-payment/internal/app/entity"
 	"wash-payment/internal/transport/rabbit/entity"
 
 	uuid "github.com/satori/go.uuid"
@@ -15,7 +15,7 @@ func (s *rabbitService) UpsertGroup(ctx context.Context, group entity.Group) err
 		return err
 	}
 
-	_, err = s.services.GroupService.Upsert(ctx, groupCreate, uuid.Nil, et.GroupUpdate{})
+	_, err = s.services.GroupService.Upsert(ctx, groupCreate, uuid.Nil, globalEntity.GroupUpdate{})
 	if err != nil {
 		return err
 	}

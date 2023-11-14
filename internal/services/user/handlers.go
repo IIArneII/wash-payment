@@ -26,17 +26,27 @@ func (s *userService) Upsert(ctx context.Context, user entity.User, userID strin
 	if user.ID != "" {
 		dbUserUpdate := conversions.UserUpdateToDB(userUpdate)
 
-		err := s.userRepo.Update(ctx, userID, dbUserUpdate)
+		userFromDB, err := s.userRepo.Get(ctx, userID)
 		if err != nil {
 			if errors.Is(err, dbmodels.ErrNotFound) {
 				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-				err = app.ErrBadRequest
 			}
 
 			return entity.User{}, err
 		}
 
+		if userFromDB.Version < *dbUserUpdate.Version {
+			err = s.userRepo.Update(ctx, userID, dbUserUpdate)
+			if err != nil {
+				if errors.Is(err, dbmodels.ErrNotFound) {
+					err = app.ErrNotFound
+				} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+					err = app.ErrBadRequest
+				}
+
+				return entity.User{}, err
+			}
+		}
 		return entity.User{}, nil
 	} else {
 		dbUser := conversions.UserToDB(user)

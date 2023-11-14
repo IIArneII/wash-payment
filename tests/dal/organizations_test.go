@@ -106,3 +106,5 @@ func TestDeleteOrganization(tt *testing.T) {
 	_, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
 	t.Err(err, dbmodels.ErrNotFound)
 }
+
+func TestCreateOrganizationService(tt *testing.T){}

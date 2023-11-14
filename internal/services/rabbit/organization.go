@@ -2,20 +2,23 @@ package rabbit
 
 import (
 	"context"
+	"errors"
+	"strconv"
 	"wash-payment/internal/app/conversions"
-	"wash-payment/internal/app/entity"
-	et "wash-payment/internal/transport/rabbit/entity"
+
+	globalEntity "wash-payment/internal/app/entity"
+	"wash-payment/internal/transport/rabbit/entity"
 
 	uuid "github.com/satori/go.uuid"
 )
 
-func (s *rabbitService) UpsertOrganization(ctx context.Context, organization et.Organization) error {
+func (s *rabbitService) UpsertOrganization(ctx context.Context, organization entity.Organization) error {
 	organizationCreate, err := conversions.OrganizationCreateFromRabbit(organization)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.services.OrganizationService.Upsert(ctx, uuid.Nil, organizationCreate, entity.OrganizationUpdate{})
+	_, err = s.services.OrganizationService.Upsert(ctx, uuid.Nil, organizationCreate, globalEntity.OrganizationUpdate{})
 	if err != nil {
 		return err
 	}
@@ -24,14 +27,21 @@ func (s *rabbitService) UpsertOrganization(ctx context.Context, organization et.
 }
 
 // NEW
-func (s *rabbitService) ProcessWithdrawal(ctx context.Context, organization et.Organization, amount int64) error {
+func (s *rabbitService) ProcessWithdrawal(ctx context.Context, payment entity.Payment) error {
 
-	organizationCreate, err := conversions.OrganizationCreateFromRabbit(organization)
+	organisationId, err := uuid.FromString(payment.OrganizationId)
+	if err != nil {
+		return err
+	}
+	amount, err := strconv.ParseInt(payment.Amount, 10, 64)
 	if err != nil {
 		return err
 	}
 
-	err = s.services.OrganizationService.Withdrawal(ctx, organizationCreate.ID, amount)
+	err = s.services.OrganizationService.Withdrawal(ctx, organisationId, amount)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return errors.New("Успех")
 }

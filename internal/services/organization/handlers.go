@@ -43,19 +43,30 @@ func (s *organizationService) Upsert(ctx context.Context, organizationID uuid.UU
 
 	if organizationID != uuid.Nil {
 		dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
-		err := s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
 
+		organizationFromDB, err := s.organizationRepo.Get(ctx, organizationID)
 		if err != nil {
 			if errors.Is(err, dbmodels.ErrNotFound) {
 				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-				err = app.ErrBadRequest
 			}
 
 			return entity.Organization{}, err
 		}
-		return entity.Organization{}, nil
 
+		if organizationFromDB.Version < *dbOrganizationUpdate.Version {
+			err = s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
+
+			if err != nil {
+				if errors.Is(err, dbmodels.ErrNotFound) {
+					err = app.ErrNotFound
+				} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+					err = app.ErrBadRequest
+				}
+
+				return entity.Organization{}, err
+			}
+		}
+		return entity.Organization{}, nil
 	} else {
 		dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
 		newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)

@@ -28,6 +28,7 @@ const (
 var (
 	repositories *app.Repositories
 	ctx          = context.Background()
+	service      *app.Services
 )
 
 func TestMain(m *testing.M) {

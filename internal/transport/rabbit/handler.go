@@ -58,7 +58,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			return rabbitmq.NackRequeue
 		}
 
-		err = svc.rabbitSvc.ProcessWithdrawal(cxt, msg.Organization, msg.Amount)
+		err = svc.rabbitSvc.ProcessWithdrawal(cxt, msg)
 		if err != nil {
 			return rabbitmq.NackRequeue
 		}
@@ -79,6 +79,13 @@ func (svc *rabbitService) SendMessage(msg interface{}, service entity.Service, r
 
 	switch service {
 	case entity.AdminsExchange:
+		return svc.washPaymentPublisher.Publish(
+			jsonMsg,
+			[]string{string(routingKey)},
+			rabbitmq.WithPublishOptionsType(string(messageType)),
+			rabbitmq.WithPublishOptionsExchange(string(service)),
+		)
+	case entity.WashPayment:
 		return svc.washPaymentPublisher.Publish(
 			jsonMsg,
 			[]string{string(routingKey)},

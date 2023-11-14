@@ -28,15 +28,25 @@ func (s *groupService) Upsert(ctx context.Context, group entity.Group, groupID u
 	if groupID != uuid.Nil {
 		dbGroupUpdate := conversions.GroupUpdateToDB(groupUpdate)
 
-		err := s.groupRepo.Update(ctx, groupID, dbGroupUpdate)
+		groupFromDB, err := s.groupRepo.Get(ctx, groupID)
 		if err != nil {
 			if errors.Is(err, dbmodels.ErrNotFound) {
 				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-				err = app.ErrBadRequest
 			}
 
 			return entity.Group{}, err
+		}
+
+		if groupFromDB.Version < *dbGroupUpdate.Version {
+			err = s.groupRepo.Update(ctx, groupID, dbGroupUpdate)
+			if err != nil {
+				if errors.Is(err, dbmodels.ErrNotFound) {
+					err = app.ErrNotFound
+				} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+					err = app.ErrBadRequest
+				}
+				return entity.Group{}, err
+			}
 		}
 
 		return entity.Group{}, nil

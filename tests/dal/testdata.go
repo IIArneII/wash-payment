@@ -2,6 +2,7 @@ package dal
 
 import (
 	"time"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
@@ -51,3 +52,24 @@ func generateTransaction(operation dbmodels.Operation, amount int64, organizatio
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
 	}
 }
+
+func generateGroupForService(organizationID uuid.UUID, version int) entity.Group {
+	return entity.Group{
+		ID:             uuid.NewV4(),
+		OrganizationID: organizationID,
+		Name:           randomdata.FirstName(randomdata.Male),
+		Description:    randomdata.RandStringRunes(50),
+		Version:        int64(version),
+		Deleted:        false,
+	}
+}
+
+func generateGroupUpdateForService(version int64, name string, description string) entity.GroupUpdate {
+	return entity.GroupUpdate{
+		Version:     &version,
+		Name:        &name,
+		Description: &description,
+	}
+}
+
+func generateUserForService()
