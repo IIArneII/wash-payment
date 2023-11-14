@@ -39,36 +39,46 @@ func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizati
 	return conversions.OrganizationFromDB(organizationFromDB), nil
 }
 
-func (s *organizationService) Create(ctx context.Context, organizationCreate entity.OrganizationCreate) (entity.Organization, error) {
-	dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
+func (s *organizationService) Upsert(ctx context.Context, organizationID uuid.UUID, organizationCreate entity.OrganizationCreate, organizationUpdate entity.OrganizationUpdate) (entity.Organization, error) {
 
-	newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			err = app.ErrAlreadyExists
+	if organizationID != uuid.Nil {
+		dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
+
+		organizationFromDB, err := s.organizationRepo.Get(ctx, organizationID)
+		if err != nil {
+			if errors.Is(err, dbmodels.ErrNotFound) {
+				err = app.ErrNotFound
+			}
+
+			return entity.Organization{}, err
 		}
 
-		return entity.Organization{}, err
-	}
+		if organizationFromDB.Version < *dbOrganizationUpdate.Version {
+			err = s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
 
-	return conversions.OrganizationFromDB(newOrganization), nil
-}
+			if err != nil {
+				if errors.Is(err, dbmodels.ErrNotFound) {
+					err = app.ErrNotFound
+				} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+					err = app.ErrBadRequest
+				}
 
-func (s *organizationService) Update(ctx context.Context, organizationID uuid.UUID, organizationUpdate entity.OrganizationUpdate) error {
-	dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
-
-	err := s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-			err = app.ErrBadRequest
+				return entity.Organization{}, err
+			}
 		}
+		return entity.Organization{}, nil
+	} else {
+		dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
+		newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
 
-		return err
+		if err != nil {
+			if errors.Is(err, dbmodels.ErrAlreadyExists) {
+				err = app.ErrAlreadyExists
+			}
+			return entity.Organization{}, err
+		}
+		return conversions.OrganizationFromDB(newOrganization), nil
 	}
-
-	return nil
 }
 
 func (s *organizationService) Delete(ctx context.Context, organizationID uuid.UUID) error {

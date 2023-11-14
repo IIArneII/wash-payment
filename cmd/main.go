@@ -16,6 +16,25 @@ import (
 	"go.uber.org/zap"
 )
 
+/*
+TODO
+Основные задачи
+
+	DONE1)Добавить методы списания средств по group_id или organisation_id(service/rabbit):
+
+	DONE2)Подтянуть Бд с ShareBuisnes(transport/rabbit/sendMessage)
+
+	DONE3)Добавить Upserve/Update методы из Постгрес в Круды (К Рудольфу обратиться) (Services->Заменить Update и Create на один, который
+	вызовет нужный метод из repo)
+
+	4)Переписать тесты для 3 пункта
+		TODO Тесты для для Юзеровс
+		TODO Тесты для для Организаций
+
+
+	5) Протестировать организации (получение через рэббит, обновление, что все встает в бонусную и что бонусная делает рассылку)
+*/
+
 func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {
@@ -53,6 +72,7 @@ func main() {
 	rabbitSvc := rabbit.NewService(l, services)
 
 	_, err = rabbitHandler.NewRabbitService(l, cfg.RabbitMQConfig, rabbitSvc)
+
 	if err != nil {
 		log.Fatalln("init rabbit service: ", err)
 	}

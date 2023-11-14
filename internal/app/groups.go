@@ -11,8 +11,7 @@ import (
 type (
 	GroupService interface {
 		Get(ctx context.Context, groupID uuid.UUID) (entity.Group, error)
-		Create(ctx context.Context, group entity.Group) (entity.Group, error)
-		Update(ctx context.Context, groupID uuid.UUID, groupUpdate entity.GroupUpdate) error
+		Upsert(ctx context.Context, group entity.Group, groupID uuid.UUID, groupUpdate entity.GroupUpdate) (entity.Group, error)
 		Delete(ctx context.Context, groupID uuid.UUID) error
 	}
 
