@@ -91,6 +91,15 @@ func UserUpdateFromRabbit(rabbitUser rabbitEntity.User) entity.UserUpdate {
 	}
 }
 
+func UserToUpdateUser(appUser entity.User) entity.UserUpdate {
+	return entity.UserUpdate{
+		Name:    &appUser.Name,
+		Email:   &appUser.Email,
+		Version: &appUser.Version,
+		Role:    &appUser.Role,
+	}
+}
+
 func RoleFromDB(role dbmodels.Role) entity.Role {
 	switch role {
 	case dbmodels.AdminRole:

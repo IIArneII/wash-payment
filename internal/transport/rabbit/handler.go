@@ -50,7 +50,6 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			return rabbitmq.NackRequeue
 		}
 
-		//NEW
 	case entity.TransactionMessageType:
 		var msg entity.Payment
 		err := json.Unmarshal(d.Body, &msg)
@@ -62,7 +61,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		if err != nil {
 			return rabbitmq.NackRequeue
 		}
-		_ = svc.SendMessage(err, entity.AdminsExchange, entity.WashPaymentRoutingKey, entity.TransactionMessageType)
+		_ = svc.SendMessage(nil, entity.WashPayment, entity.WashPaymentRoutingKey, entity.TransactionMessageType)
 
 	default:
 		return rabbitmq.NackRequeue

@@ -7,6 +7,5 @@ const (
 	OrganizationMessageType MessageType = "admin_service/organization"
 	GroupMessageType        MessageType = "admin_service/server_group"
 	DataMessageType         MessageType = "admin_service/all_data"
-	//NEW
-	TransactionMessageType MessageType = "admin_service/transaction"
+	TransactionMessageType  MessageType = "admin_service/transaction"
 )

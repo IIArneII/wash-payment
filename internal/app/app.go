@@ -21,8 +21,7 @@ type (
 		UserRepo         UserRepo
 		OrganizationRepo OrganizationRepo
 		GroupRepo        GroupRepo
-		//NEW
-		TransactionRepo TransactionRepo
+		TransactionRepo  TransactionRepo
 	}
 
 	Services struct {

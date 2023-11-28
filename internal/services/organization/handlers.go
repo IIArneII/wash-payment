@@ -39,45 +39,41 @@ func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizati
 	return conversions.OrganizationFromDB(organizationFromDB), nil
 }
 
-func (s *organizationService) Upsert(ctx context.Context, organizationID uuid.UUID, organizationCreate entity.OrganizationCreate, organizationUpdate entity.OrganizationUpdate) (entity.Organization, error) {
+func (s *organizationService) Upsert(ctx context.Context, organizationCreate entity.OrganizationCreate) (entity.Organization, error) {
 
-	if organizationID != uuid.Nil {
-		dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
+	_, err := s.organizationRepo.Get(ctx, organizationCreate.ID)
 
-		organizationFromDB, err := s.organizationRepo.Get(ctx, organizationID)
-		if err != nil {
-			if errors.Is(err, dbmodels.ErrNotFound) {
-				err = app.ErrNotFound
-			}
+	if err != nil {
+		if errors.Is(err, dbmodels.ErrNotFound) {
+			dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
 
-			return entity.Organization{}, err
-		}
-
-		if organizationFromDB.Version < *dbOrganizationUpdate.Version {
-			err = s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
-
+			newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
 			if err != nil {
-				if errors.Is(err, dbmodels.ErrNotFound) {
-					err = app.ErrNotFound
-				} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-					err = app.ErrBadRequest
+				if errors.Is(err, dbmodels.ErrAlreadyExists) {
+					err = app.ErrAlreadyExists
 				}
 
 				return entity.Organization{}, err
 			}
+			return conversions.OrganizationFromDB(newOrganization), nil
 		}
-		return entity.Organization{}, nil
+		return entity.Organization{}, err
 	} else {
-		dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
-		newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
+		organizationUpdate := conversions.OrganizationCreateToOrganizationUpdate(organizationCreate)
+		dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
 
+		err := s.organizationRepo.Update(ctx, organizationCreate.ID, dbOrganizationUpdate)
 		if err != nil {
-			if errors.Is(err, dbmodels.ErrAlreadyExists) {
-				err = app.ErrAlreadyExists
+			if errors.Is(err, dbmodels.ErrNotFound) {
+				err = app.ErrNotFound
+			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+				err = app.ErrBadRequest
 			}
+
 			return entity.Organization{}, err
 		}
-		return conversions.OrganizationFromDB(newOrganization), nil
+
+		return entity.Organization{}, nil
 	}
 }
 

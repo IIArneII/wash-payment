@@ -9,7 +9,7 @@ import (
 type (
 	UserService interface {
 		Get(ctx context.Context, userID string) (entity.User, error)
-		Upsert(ctx context.Context, user entity.User, userID string, userUpdate entity.UserUpdate) (entity.User, error)
+		Upsert(ctx context.Context, user entity.User) (entity.User, error)
 	}
 
 	UserRepo interface {
