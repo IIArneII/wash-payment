@@ -132,6 +132,8 @@ func RoleFromRabbit(role string) entity.Role {
 		return entity.AdminRole
 	case "systemManager":
 		return entity.SystemManagerRole
+	case "system_manager":
+		return entity.SystemManagerRole
 	case "noAccess":
 		return entity.NoAccessRole
 	default:

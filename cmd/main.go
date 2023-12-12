@@ -16,22 +16,6 @@ import (
 	"go.uber.org/zap"
 )
 
-/*
-TODO
-Основные задачи
-
-	DONE1)Добавить методы списания средств по group_id или organisation_id(service/rabbit):
-
-	DONE2)Подтянуть Бд с ShareBuisnes(transport/rabbit/sendMessage)
-
-	DONE3)Добавить Upserve методы в Круды (Services->Заменить Update и Create на один, который
-	вызовет нужный метод из repo)
-
-	4)	Переписать тесты для 3 пункта
-
-	5)	Протестировать организации (получение через рэббит, обновление, что все встает в бонусную и что бонусная делает рассылку)
-*/
-
 func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {

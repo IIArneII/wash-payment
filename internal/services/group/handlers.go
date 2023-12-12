@@ -37,7 +37,7 @@ func (s *groupService) Upsert(ctx context.Context, group entity.Group) (entity.G
 
 			if err != nil {
 				if errors.Is(err, dbmodels.ErrAlreadyExists) {
-					err = app.ErrAlreadyExists
+					return entity.Group{}, nil
 				}
 
 				return entity.Group{}, err

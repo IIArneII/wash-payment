@@ -50,7 +50,7 @@ func (s *organizationService) Upsert(ctx context.Context, organizationCreate ent
 			newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
 			if err != nil {
 				if errors.Is(err, dbmodels.ErrAlreadyExists) {
-					err = app.ErrAlreadyExists
+					return entity.Organization{}, nil
 				}
 
 				return entity.Organization{}, err
