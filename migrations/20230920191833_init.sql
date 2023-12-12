@@ -39,7 +39,8 @@ create table transactions (
     organization_id uuid                        NOT NULL     REFERENCES organizations(id) ON DELETE RESTRICT,
     amount          BIGINT                      NOT NULL     CHECK (amount > 0),
     operation       TRANSACTIONS_OPERATION_ENUM NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW()
+    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW(),
+    sevice_name          TEXT                   NOT NULL DEFAULT ''
 );
 
 -- +goose StatementEnd

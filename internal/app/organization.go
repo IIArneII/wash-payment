@@ -14,7 +14,7 @@ type (
 		Upsert(ctx context.Context, organization entity.OrganizationCreate) (entity.Organization, error)
 		Delete(ctx context.Context, organizationID uuid.UUID) error
 		Deposit(ctx context.Context, auth Auth, organizationID uuid.UUID, amount int64) error
-		Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64) error
+		Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64, service_name string) error
 	}
 
 	OrganizationRepo interface {

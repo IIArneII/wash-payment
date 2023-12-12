@@ -31,7 +31,7 @@ func (s *rabbitService) ProcessWithdrawal(ctx context.Context, payment entity.Pa
 		return err
 	}
 
-	err = s.services.OrganizationService.Withdrawal(ctx, organisationId, payment.Amount)
+	err = s.services.OrganizationService.Withdrawal(ctx, organisationId, payment.Amount, payment.Service)
 	if err != nil {
 		return err
 	}

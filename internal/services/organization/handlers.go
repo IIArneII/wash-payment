@@ -134,7 +134,7 @@ func (s *organizationService) Deposit(ctx context.Context, auth app.Auth, organi
 	return nil
 }
 
-func (s *organizationService) Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64) error {
+func (s *organizationService) Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64, service_name string) error {
 	if amount <= 0 {
 		return app.ErrBadValue
 	}
@@ -158,6 +158,7 @@ func (s *organizationService) Withdrawal(ctx context.Context, organizationID uui
 		Amount:         amount,
 		Operation:      dbmodels.DebitOperation,
 		CreatedAt:      time.Now().UTC(),
+		Sevice:         service_name,
 	}
 
 	_, err = s.transactionRepo.Create(ctx, transaction)

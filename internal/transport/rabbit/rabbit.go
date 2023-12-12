@@ -71,7 +71,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		string(entity.WashPaymentRoutingKey),
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
 		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
-		rabbitmq.WithConsumerOptionsExchangeKind("fanout"),
+		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
 	if err != nil {
