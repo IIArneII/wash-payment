@@ -87,3 +87,12 @@ func OrganizationToRest(appOrganizationCreate entity.Organization) models.Organi
 		Balance:     &appOrganizationCreate.Balance,
 	}
 }
+
+func OrganizationCreateToOrganizationUpdate(appOrganizationCreate entity.OrganizationCreate) entity.OrganizationUpdate {
+	return entity.OrganizationUpdate{
+		Name:        &appOrganizationCreate.Name,
+		DisplayName: &appOrganizationCreate.DisplayName,
+		Description: &appOrganizationCreate.Description,
+		Version:     &appOrganizationCreate.Version,
+	}
+}

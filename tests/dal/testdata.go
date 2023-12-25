@@ -2,6 +2,7 @@ package dal
 
 import (
 	"time"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
@@ -15,7 +16,7 @@ func generateUser(role dbmodels.Role, organizationID uuid.NullUUID, version int)
 		Name:           randomdata.FullName(randomdata.RandomGender),
 		Role:           role,
 		OrganizationID: organizationID,
-		Version:        version,
+		Version:        int64(version),
 	}
 }
 
@@ -26,7 +27,7 @@ func generateOrganization(balance int64, version int) dbmodels.Organization {
 		DisplayName: uuid.NewV4().String(),
 		Description: randomdata.RandStringRunes(50),
 		Deleted:     false,
-		Version:     version,
+		Version:     int64(version),
 		Balance:     balance,
 	}
 }
@@ -38,7 +39,7 @@ func generateGroup(organizationID uuid.UUID, version int) dbmodels.Group {
 		Name:           randomdata.FirstName(randomdata.Male),
 		Description:    randomdata.RandStringRunes(50),
 		Deleted:        false,
-		Version:        version,
+		Version:        int64(version),
 	}
 }
 
@@ -51,3 +52,24 @@ func generateTransaction(operation dbmodels.Operation, amount int64, organizatio
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
 	}
 }
+
+func generateGroupForService(organizationID uuid.UUID, version int) entity.Group {
+	return entity.Group{
+		ID:             uuid.NewV4(),
+		OrganizationID: organizationID,
+		Name:           randomdata.FirstName(randomdata.Male),
+		Description:    randomdata.RandStringRunes(50),
+		Version:        int64(version),
+		Deleted:        false,
+	}
+}
+
+func generateGroupUpdateForService(version int64, name string, description string) entity.GroupUpdate {
+	return entity.GroupUpdate{
+		Version:     &version,
+		Name:        &name,
+		Description: &description,
+	}
+}
+
+func generateUserForService()

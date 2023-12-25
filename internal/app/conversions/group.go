@@ -74,3 +74,11 @@ func GroupUpdateFromRabbit(rabbitGroup rabbitEntity.Group) entity.GroupUpdate {
 		Version:     &rabbitGroup.Version,
 	}
 }
+
+func GroupToGroupUpdate(appGroup entity.Group) entity.GroupUpdate {
+	return entity.GroupUpdate{
+		Name:        &appGroup.Name,
+		Description: &appGroup.Description,
+		Version:     &appGroup.Version,
+	}
+}

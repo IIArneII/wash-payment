@@ -21,7 +21,7 @@ RUN apk update --no-cache
 WORKDIR /app
 
 COPY environment/firebase /app/firebase
-COPY internal/migrations internal/migrations
+COPY migrations migrations
 COPY --from=builder /app/wash-payment wash-payment
 
 EXPOSE 8080

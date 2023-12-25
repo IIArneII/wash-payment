@@ -53,6 +53,7 @@ func main() {
 	rabbitSvc := rabbit.NewService(l, services)
 
 	_, err = rabbitHandler.NewRabbitService(l, cfg.RabbitMQConfig, rabbitSvc)
+
 	if err != nil {
 		log.Fatalln("init rabbit service: ", err)
 	}
