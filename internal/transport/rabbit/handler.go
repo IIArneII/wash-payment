@@ -20,6 +20,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		err := json.Unmarshal(d.Body, &msg)
 
 		if err != nil {
+			svc.l.Info(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -34,13 +35,13 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		var msg entity.Group
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
-
+			svc.l.Info(err)
 			return rabbitmq.NackRequeue
 		}
 
 		err = svc.rabbitSvc.UpsertGroup(cxt, msg)
 		if err != nil {
-			svc.l.Info(err, " ", msg.Name, " ", msg.ID)
+			svc.l.Info(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -48,6 +49,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		var msg entity.User
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
+			svc.l.Info(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -60,14 +62,16 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 	case entity.WithdrawalMessageType:
 		var msg entity.Payment
 		err := json.Unmarshal(d.Body, &msg)
+
 		if err != nil {
-			return rabbitmq.NackRequeue
+			svc.l.Info(err)
+			return rabbitmq.NackDiscard
 		}
 
 		err = svc.rabbitSvc.ProcessWithdrawal(cxt, msg)
 		if err != nil {
 			svc.l.Info(err)
-			return rabbitmq.NackRequeue
+			return rabbitmq.NackDiscard
 		}
 		_ = svc.SendMessage(nil, entity.WashBonusExchange, entity.WashPaymentRoutingKey, entity.WithdrawalMessageType)
 

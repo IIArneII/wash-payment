@@ -2,12 +2,12 @@ package dal
 
 import (
 	"testing"
+	"wash-payment/internal/app/conversions"
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/powerman/check"
-	uuid "github.com/satori/go.uuid"
 )
 
 func TestCreateGroup(tt *testing.T) {
@@ -125,55 +125,50 @@ func TestUpsertServiceGroup(tt *testing.T) {
 	t := check.T(tt)
 
 	var organization1 = generateOrganization(10000, 1)
-	var group1 = generateGroupForService(organization1.ID, 1)
-	var group2 = generateGroupForService(organization1.ID, 1)
+	var group1 = generateGroup(organization1.ID, 1)
+	var group2 = generateGroup(organization1.ID, 1)
 
-	//TEST Create with Service
+	var groupService1 = conversions.GroupFromDB(group1)
+	var groupService2 = conversions.GroupFromDB(group2)
+
+	// TEST CREATE
 
 	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
 
-	res1, err := service.GroupService.Upsert(ctx, group1, uuid.Nil, entity.GroupUpdate{})
+	res1, err := service.GroupService.Upsert(ctx, groupService1)
 	t.Nil(err)
-	t.DeepEqual(res1, group1)
+	t.DeepEqual(res1, groupService1)
 
-	res2, err := service.GroupService.Upsert(ctx, group2, uuid.Nil, entity.GroupUpdate{})
+	res2, err := service.GroupService.Upsert(ctx, groupService2)
 	t.Nil(err)
-	t.DeepEqual(res2, group2)
+	t.DeepEqual(res2, groupService2)
 
-	_, err = service.GroupService.Upsert(ctx, group2, uuid.Nil, entity.GroupUpdate{})
-	t.Err(err, dbmodels.ErrAlreadyExists)
+	_, err = service.GroupService.Upsert(ctx, entity.Group{})
+	t.Err(err, dbmodels.ErrNotFound)
 
-	//TEST Update with Service
+	// TEST UPDATE
 
 	newName := randomdata.FirstName(randomdata.Male)
 	newDescription := randomdata.RandStringRunes(50)
 	newVersion := int64(2)
-	groupUpdate := generateGroupUpdateForService(newVersion, newName, newDescription)
 
-	_, err = service.GroupService.Upsert(ctx, entity.Group{}, group1.ID, groupUpdate)
+	groupService1.Name = newName
+	groupService1.Description = newDescription
+	groupService1.Version = newVersion
+
+	resUpdate, err := service.GroupService.Upsert(ctx, groupService1)
 
 	t.Nil(err)
+	t.DeepEqual(resUpdate, entity.Group{})
 
-	group1.Name = newName
-	group1.Description = newDescription
-	group1.Version = newVersion
+	newName = randomdata.FirstName(randomdata.Male)
+	newVersion = int64(3)
+	groupService1.Name = newName
+	groupService1.Version = newVersion
 
-	resGet1, err := repositories.GroupRepo.Get(ctx, group1.ID)
+	resUpdate2, err := service.GroupService.Upsert(ctx, groupService1)
 	t.Nil(err)
-	t.DeepEqual(resGet1, group1)
+	t.DeepEqual(resUpdate2, entity.Group{})
 
-	_, err = service.GroupService.Upsert(ctx, entity.Group{}, group1.ID, entity.GroupUpdate{})
-	t.Err(err, dbmodels.ErrEmptyUpdate)
-
-	_, err = service.GroupService.Upsert(ctx, entity.Group{}, group2.ID, groupUpdate)
-	t.Err(err, dbmodels.ErrNotFound)
-
-	newVersion = 1
-	newName = randomdata.FullName(randomdata.RandomGender)
-	groupUpdate = generateGroupUpdateForService(newVersion, newName, "")
-
-	_, err = service.GroupService.Upsert(ctx, entity.Group{}, organization1.ID, groupUpdate)
-
-	t.Err(err, dbmodels.ErrNotFound)
 }

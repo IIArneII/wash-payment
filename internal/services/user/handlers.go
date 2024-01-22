@@ -23,6 +23,9 @@ func (s *userService) Get(ctx context.Context, userID string) (entity.User, erro
 }
 
 func (s *userService) Upsert(ctx context.Context, user entity.User) (entity.User, error) {
+	if user.ID == "" {
+		return entity.User{}, app.ErrNotFound
+	}
 	_, err := s.userRepo.Get(ctx, user.ID)
 
 	if err != nil {
@@ -33,10 +36,6 @@ func (s *userService) Upsert(ctx context.Context, user entity.User) (entity.User
 			newUser, err := s.userRepo.Create(ctx, dbUser)
 
 			if err != nil {
-				if errors.Is(err, dbmodels.ErrAlreadyExists) {
-					err = app.ErrAlreadyExists
-				}
-
 				return entity.User{}, err
 			}
 			return conversions.UserFromDB(newUser), nil
@@ -49,12 +48,9 @@ func (s *userService) Upsert(ctx context.Context, user entity.User) (entity.User
 
 		err := s.userRepo.Update(ctx, user.ID, dbUserUpdate)
 		if err != nil {
-			if errors.Is(err, dbmodels.ErrNotFound) {
-				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+			if errors.Is(err, dbmodels.ErrEmptyUpdate) {
 				err = app.ErrBadRequest
 			}
-
 			return entity.User{}, err
 		}
 

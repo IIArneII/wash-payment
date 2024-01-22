@@ -15,14 +15,12 @@ var columns = []string{"id", "name", "display_name", "description", "version", "
 
 func (r *organizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (dbmodels.Organization, error) {
 	op := "failed to get organization by ID: %w"
-
 	var dbOrganization dbmodels.Organization
 	err := r.db.NewSession(nil).
 		Select(columns...).
 		From(dbmodels.OrganizationsTable).
 		Where(dbmodels.ByIDCondition, organizationID).
 		LoadOneContext(ctx, &dbOrganization)
-
 	if err == nil {
 		return dbOrganization, nil
 	}

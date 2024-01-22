@@ -11,6 +11,7 @@ import (
 	"wash-payment/internal/dal"
 	"wash-payment/internal/pkg/db"
 	"wash-payment/internal/pkg/logger"
+	"wash-payment/internal/services"
 
 	"github.com/gocraft/dbr/v2"
 	"github.com/ory/dockertest/v3"
@@ -27,8 +28,8 @@ const (
 
 var (
 	repositories *app.Repositories
-	ctx          = context.Background()
 	service      *app.Services
+	ctx          = context.Background()
 )
 
 func TestMain(m *testing.M) {
@@ -56,6 +57,7 @@ func TestMain(m *testing.M) {
 	}()
 
 	repositories = dal.NewRepositories(l, dbConn)
+	service = services.NewServices(l, repositories)
 
 	m.Run()
 }

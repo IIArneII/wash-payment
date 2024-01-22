@@ -32,6 +32,17 @@ func generateOrganization(balance int64, version int) dbmodels.Organization {
 	}
 }
 
+func generateOrganizationCreate(balance int64, version int64) entity.OrganizationCreate {
+	return entity.OrganizationCreate{
+		ID:          uuid.NewV4(),
+		Name:        randomdata.FirstName(randomdata.Male),
+		DisplayName: uuid.NewV4().String(),
+		Description: randomdata.RandStringRunes(50),
+		Version:     int64(version),
+		Deleted:     false,
+	}
+}
+
 func generateGroup(organizationID uuid.UUID, version int) dbmodels.Group {
 	return dbmodels.Group{
 		ID:             uuid.NewV4(),
@@ -50,26 +61,6 @@ func generateTransaction(operation dbmodels.Operation, amount int64, organizatio
 		Amount:         amount,
 		Operation:      operation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
+		Sevice:         randomdata.City(),
 	}
 }
-
-func generateGroupForService(organizationID uuid.UUID, version int) entity.Group {
-	return entity.Group{
-		ID:             uuid.NewV4(),
-		OrganizationID: organizationID,
-		Name:           randomdata.FirstName(randomdata.Male),
-		Description:    randomdata.RandStringRunes(50),
-		Version:        int64(version),
-		Deleted:        false,
-	}
-}
-
-func generateGroupUpdateForService(version int64, name string, description string) entity.GroupUpdate {
-	return entity.GroupUpdate{
-		Version:     &version,
-		Name:        &name,
-		Description: &description,
-	}
-}
-
-func generateUserForService()

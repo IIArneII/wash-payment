@@ -41,6 +41,9 @@ func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizati
 
 func (s *organizationService) Upsert(ctx context.Context, organizationCreate entity.OrganizationCreate) (entity.Organization, error) {
 
+	if organizationCreate.ID == uuid.Nil {
+		return entity.Organization{}, app.ErrNotFound
+	}
 	_, err := s.organizationRepo.Get(ctx, organizationCreate.ID)
 
 	if err != nil {
@@ -50,7 +53,7 @@ func (s *organizationService) Upsert(ctx context.Context, organizationCreate ent
 			newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
 			if err != nil {
 				if errors.Is(err, dbmodels.ErrAlreadyExists) {
-					return entity.Organization{}, nil
+					return entity.Organization{}, app.ErrAlreadyExists
 				}
 
 				return entity.Organization{}, err
@@ -64,9 +67,7 @@ func (s *organizationService) Upsert(ctx context.Context, organizationCreate ent
 
 		err := s.organizationRepo.Update(ctx, organizationCreate.ID, dbOrganizationUpdate)
 		if err != nil {
-			if errors.Is(err, dbmodels.ErrNotFound) {
-				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+			if errors.Is(err, dbmodels.ErrEmptyUpdate) {
 				err = app.ErrBadRequest
 			}
 
@@ -114,6 +115,7 @@ func (s *organizationService) Deposit(ctx context.Context, auth app.Auth, organi
 		Amount:         amount,
 		Operation:      dbmodels.DepositOperation,
 		CreatedAt:      time.Now().UTC(),
+		Sevice:         "",
 	}
 
 	_, err = s.transactionRepo.Create(ctx, transaction)
@@ -151,6 +153,8 @@ func (s *organizationService) Withdrawal(ctx context.Context, organizationID uui
 	if organizationDB.Balance-amount < 0 {
 		return app.ErrInsufficientFunds
 	}
+
+	s.l.Info(service_name)
 
 	transaction := dbmodels.Transaction{
 		ID:             uuid.NewV4(),

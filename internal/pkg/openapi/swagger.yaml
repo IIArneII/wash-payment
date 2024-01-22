@@ -82,6 +82,51 @@ paths:
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
 
+  /organizations/balances:
+    get:
+      tags:
+        - Organizations
+      operationId: getBalances
+      summary: Get organization balances
+      description: Get a list of organization balances.
+      security:
+        - authKey: []
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/OrganizationBalance"
+        403: {$ref: '#/responses/Forbidden'}
+        default: {$ref: '#/responses/InternalError'}
+
+  /organizations/{id}/operations:
+    get:
+      tags:
+        - Organizations
+      operationId: getOperations
+      summary: Get organization operations
+      description: Get a list of operations for the specified organization.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uuid
+      security:
+        - authKey: []
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/OrganizationOperation"
+        403: {$ref: '#/responses/Forbidden'}
+        404: {$ref: '#/responses/NotFound'}
+        default: {$ref: '#/responses/InternalError'}
+
 responses:
   BadRequest:
     description: Bad request
@@ -148,3 +193,42 @@ definitions:
     - displayName
     - description
     - balance
+
+  OrganizationBalance:
+    type: object
+    properties:
+      organizationId:
+        type: string
+        format: uuid
+      organizationName:
+        type: string
+      currentBalance:
+        description: Current balance in kopecks (RUB * 10^2)
+        type: integer
+        format: int64
+    required:
+      - organizationId
+      - organizationName
+      - currentBalance
+
+  OrganizationOperation:
+    type: object
+    properties:
+      operationId:
+        type: string
+        format: uuid
+      date:
+        type: string
+        format: date-time
+      type:
+        type: string
+        enum: ["credit", "debit"]
+      moneyQuantity:
+        description: Money quantity in kopecks (RUB * 10^2)
+        type: integer
+        format: int64
+    required:
+      - operationId
+      - date
+      - type
+      - moneyQuantity

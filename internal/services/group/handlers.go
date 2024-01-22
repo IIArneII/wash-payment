@@ -25,7 +25,9 @@ func (s *groupService) Get(ctx context.Context, groupID uuid.UUID) (entity.Group
 }
 
 func (s *groupService) Upsert(ctx context.Context, group entity.Group) (entity.Group, error) {
-
+	if group.ID == uuid.Nil {
+		return entity.Group{}, app.ErrNotFound
+	}
 	_, err := s.groupRepo.Get(ctx, group.ID)
 
 	if err != nil {
@@ -36,10 +38,6 @@ func (s *groupService) Upsert(ctx context.Context, group entity.Group) (entity.G
 			newOrganization, err := s.groupRepo.Create(ctx, dbGroup)
 
 			if err != nil {
-				if errors.Is(err, dbmodels.ErrAlreadyExists) {
-					return entity.Group{}, nil
-				}
-
 				return entity.Group{}, err
 			}
 
@@ -54,12 +52,9 @@ func (s *groupService) Upsert(ctx context.Context, group entity.Group) (entity.G
 
 		err := s.groupRepo.Update(ctx, group.ID, dbGroupUpdate)
 		if err != nil {
-			if errors.Is(err, dbmodels.ErrNotFound) {
-				err = app.ErrNotFound
-			} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
+			if errors.Is(err, dbmodels.ErrEmptyUpdate) {
 				err = app.ErrBadRequest
 			}
-
 			return entity.Group{}, err
 		}
 

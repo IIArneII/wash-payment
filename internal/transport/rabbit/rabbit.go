@@ -92,7 +92,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
 
 		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
-		rabbitmq.WithConsumerOptionsExchangeKind("fanout"),
+		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
 		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.PaymentDataQueue)),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)

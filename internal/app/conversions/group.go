@@ -8,14 +8,14 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func GroupFromDB(dbOrganization dbmodels.Group) entity.Group {
+func GroupFromDB(dbGroup dbmodels.Group) entity.Group {
 	return entity.Group{
-		ID:             dbOrganization.ID,
-		OrganizationID: dbOrganization.OrganizationID,
-		Name:           dbOrganization.Name,
-		Description:    dbOrganization.Description,
-		Version:        dbOrganization.Version,
-		Deleted:        dbOrganization.Deleted,
+		ID:             dbGroup.ID,
+		OrganizationID: dbGroup.OrganizationID,
+		Name:           dbGroup.Name,
+		Description:    dbGroup.Description,
+		Version:        dbGroup.Version,
+		Deleted:        dbGroup.Deleted,
 	}
 }
 

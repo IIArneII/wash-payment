@@ -2,6 +2,8 @@ package dal
 
 import (
 	"testing"
+	"wash-payment/internal/app/conversions"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
@@ -9,6 +11,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// TODO: Переписать тесты для Транзакций(Добавил поля новые), тесты для организаций(withDrowal и deposit)
 func TestCreateOrganization(tt *testing.T) {
 	t := check.T(tt)
 
@@ -107,4 +110,46 @@ func TestDeleteOrganization(tt *testing.T) {
 	t.Err(err, dbmodels.ErrNotFound)
 }
 
-func TestCreateOrganizationService(tt *testing.T){}
+func TestUpsertServiceOrgnization(tt *testing.T) {
+	t := check.T(tt)
+
+	var organization1 = generateOrganizationCreate(10000, 1)
+	var organization2 = generateOrganizationCreate(10000, 1)
+	//TEST CREATE
+	var organizationTest = conversions.OrganizationFromDB(conversions.OrganizationCreateToDB(organization1))
+	var organizationTest2 = conversions.OrganizationFromDB(conversions.OrganizationCreateToDB(organization2))
+
+	res1, err := service.OrganizationService.Upsert(ctx, organization1)
+	t.Nil(err)
+	t.DeepEqual(res1, organizationTest)
+
+	res2, err := service.OrganizationService.Upsert(ctx, organization2)
+	t.Nil(err)
+	t.DeepEqual(res2, organizationTest2)
+
+	_, err = service.OrganizationService.Upsert(ctx, organization2)
+	t.Nil(err)
+
+	// TEST UPDATE
+
+	newName := randomdata.FirstName(randomdata.Male)
+	newDescription := randomdata.RandStringRunes(50)
+	newDisplayName := uuid.NewV4().String()
+	newVersion := int64(2)
+
+	organization1.Name = newName
+	organization1.Description = newDescription
+	organization1.DisplayName = newDisplayName
+	organization1.Version = newVersion
+
+	_, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	t.Nil(err)
+
+	_, err = service.OrganizationService.Upsert(ctx, entity.OrganizationCreate{})
+	t.Err(err, dbmodels.ErrNotFound)
+
+	resUpdate, err := service.OrganizationService.Upsert(ctx, organization1)
+	t.Nil(err)
+	t.DeepEqual(resUpdate, entity.Organization{})
+
+}

@@ -2,6 +2,8 @@ package dal
 
 import (
 	"testing"
+	"wash-payment/internal/app/conversions"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
@@ -90,4 +92,53 @@ func TestUpdateUser(tt *testing.T) {
 	}
 	err = repositories.UserRepo.Update(ctx, user1.ID, updateUser)
 	t.Err(err, dbmodels.ErrNotFound)
+}
+
+func TestUpsertServiceUser(tt *testing.T) {
+	t := check.T(tt)
+
+	var user1 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
+	var user2 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
+
+	var userService1 = conversions.UserFromDB(user1)
+	var userService2 = conversions.UserFromDB(user2)
+
+	// TEST CREATE
+
+	res1, err := service.UserService.Upsert(ctx, userService1)
+	t.Nil(err)
+	t.DeepEqual(res1, userService1)
+
+	res2, err := service.UserService.Upsert(ctx, userService2)
+	t.Nil(err)
+	t.DeepEqual(res2, userService2)
+
+	_, err = service.UserService.Upsert(ctx, entity.User{})
+	t.Err(err, dbmodels.ErrNotFound)
+
+	// TEST UPDATE
+
+	newVersion := int64(2)
+	newEmail := randomdata.Email()
+	newName := randomdata.FullName(randomdata.RandomGender)
+
+	userService1.Role = entity.SystemManagerRole
+	userService1.Version = newVersion
+	userService1.Email = newEmail
+	userService1.Name = newName
+
+	resUpdate, err := service.UserService.Upsert(ctx, userService1)
+
+	t.Nil(err)
+	t.DeepEqual(resUpdate, entity.User{})
+
+	newName = randomdata.FirstName(randomdata.Male)
+	newVersion = int64(3)
+
+	userService1.Name = newName
+	userService1.Version = newVersion
+
+	resUpdate2, err := service.UserService.Upsert(ctx, userService1)
+	t.Nil(err)
+	t.DeepEqual(resUpdate2, entity.User{})
 }
