@@ -26,7 +26,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sebest/xff v0.0.0-20210106013422-671bd2870b3a
 	github.com/wagslane/go-rabbitmq v0.12.4
-	go.uber.org/zap v1.25.0
+	go.uber.org/zap v1.26.0
 	golang.org/x/net v0.20.0
 	google.golang.org/api v0.153.0
 )
