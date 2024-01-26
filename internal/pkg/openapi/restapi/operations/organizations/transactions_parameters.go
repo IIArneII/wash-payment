@@ -14,19 +14,19 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// NewGetParams creates a new GetParams object
+// NewTransactionsParams creates a new TransactionsParams object
 //
 // There are no default values defined in the spec.
-func NewGetParams() GetParams {
+func NewTransactionsParams() TransactionsParams {
 
-	return GetParams{}
+	return TransactionsParams{}
 }
 
-// GetParams contains all the bound params for the get operation
+// TransactionsParams contains all the bound params for the transactions operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters get
-type GetParams struct {
+// swagger:parameters transactions
+type TransactionsParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -41,8 +41,8 @@ type GetParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewGetParams() beforehand.
-func (o *GetParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewTransactionsParams() beforehand.
+func (o *TransactionsParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
@@ -58,7 +58,7 @@ func (o *GetParams) BindRequest(r *http.Request, route *middleware.MatchedRoute)
 }
 
 // bindID binds and validates parameter ID from path.
-func (o *GetParams) bindID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *TransactionsParams) bindID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -82,7 +82,7 @@ func (o *GetParams) bindID(rawData []string, hasKey bool, formats strfmt.Registr
 }
 
 // validateID carries on validations for parameter ID
-func (o *GetParams) validateID(formats strfmt.Registry) error {
+func (o *TransactionsParams) validateID(formats strfmt.Registry) error {
 
 	if err := validate.FormatOf("id", "path", "uuid", o.ID.String(), formats); err != nil {
 		return err

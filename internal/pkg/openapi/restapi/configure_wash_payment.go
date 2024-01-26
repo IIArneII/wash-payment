@@ -67,6 +67,16 @@ func configureAPI(api *operations.WashPaymentAPI) http.Handler {
 			return standard.HealthCheckNotImplemented()
 		})
 	}
+	if api.OrganizationsListHandler == nil {
+		api.OrganizationsListHandler = organizations.ListHandlerFunc(func(params organizations.ListParams, principal *app.Auth) organizations.ListResponder {
+			return organizations.ListNotImplemented()
+		})
+	}
+	if api.OrganizationsTransactionsHandler == nil {
+		api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *app.Auth) organizations.TransactionsResponder {
+			return organizations.TransactionsNotImplemented()
+		})
+	}
 
 	api.PreServerShutdown = func() {}
 

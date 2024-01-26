@@ -13,42 +13,42 @@ import (
 	"wash-payment/internal/app"
 )
 
-// GetHandlerFunc turns a function with the right signature into a get handler
-type GetHandlerFunc func(GetParams, *app.Auth) GetResponder
+// TransactionsHandlerFunc turns a function with the right signature into a transactions handler
+type TransactionsHandlerFunc func(TransactionsParams, *app.Auth) TransactionsResponder
 
 // Handle executing the request and returning a response
-func (fn GetHandlerFunc) Handle(params GetParams, principal *app.Auth) GetResponder {
+func (fn TransactionsHandlerFunc) Handle(params TransactionsParams, principal *app.Auth) TransactionsResponder {
 	return fn(params, principal)
 }
 
-// GetHandler interface for that can handle valid get params
-type GetHandler interface {
-	Handle(GetParams, *app.Auth) GetResponder
+// TransactionsHandler interface for that can handle valid transactions params
+type TransactionsHandler interface {
+	Handle(TransactionsParams, *app.Auth) TransactionsResponder
 }
 
-// NewGet creates a new http.Handler for the get operation
-func NewGet(ctx *middleware.Context, handler GetHandler) *Get {
-	return &Get{Context: ctx, Handler: handler}
+// NewTransactions creates a new http.Handler for the transactions operation
+func NewTransactions(ctx *middleware.Context, handler TransactionsHandler) *Transactions {
+	return &Transactions{Context: ctx, Handler: handler}
 }
 
 /*
-	Get swagger:route GET /organizations/{id} Organizations get
+	Transactions swagger:route GET /organizations/{id}/transactions Organizations transactions
 
-# Get organization
+# Get organization transactions
 
-Get information about the specified organization
+Get a list of transactions for the specified organization
 */
-type Get struct {
+type Transactions struct {
 	Context *middleware.Context
-	Handler GetHandler
+	Handler TransactionsHandler
 }
 
-func (o *Get) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (o *Transactions) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	route, rCtx, _ := o.Context.RouteInfo(r)
 	if rCtx != nil {
 		*r = *rCtx
 	}
-	var Params = NewGetParams()
+	var Params = NewTransactionsParams()
 	uprinc, aCtx, err := o.Context.Authorize(r, route)
 	if err != nil {
 		o.Context.Respond(rw, r, route.Produces, route, err)

@@ -13,42 +13,42 @@ import (
 	"wash-payment/internal/app"
 )
 
-// GetHandlerFunc turns a function with the right signature into a get handler
-type GetHandlerFunc func(GetParams, *app.Auth) GetResponder
+// ListHandlerFunc turns a function with the right signature into a list handler
+type ListHandlerFunc func(ListParams, *app.Auth) ListResponder
 
 // Handle executing the request and returning a response
-func (fn GetHandlerFunc) Handle(params GetParams, principal *app.Auth) GetResponder {
+func (fn ListHandlerFunc) Handle(params ListParams, principal *app.Auth) ListResponder {
 	return fn(params, principal)
 }
 
-// GetHandler interface for that can handle valid get params
-type GetHandler interface {
-	Handle(GetParams, *app.Auth) GetResponder
+// ListHandler interface for that can handle valid list params
+type ListHandler interface {
+	Handle(ListParams, *app.Auth) ListResponder
 }
 
-// NewGet creates a new http.Handler for the get operation
-func NewGet(ctx *middleware.Context, handler GetHandler) *Get {
-	return &Get{Context: ctx, Handler: handler}
+// NewList creates a new http.Handler for the list operation
+func NewList(ctx *middleware.Context, handler ListHandler) *List {
+	return &List{Context: ctx, Handler: handler}
 }
 
 /*
-	Get swagger:route GET /organizations/{id} Organizations get
+	List swagger:route GET /organizations Organizations list
 
-# Get organization
+# Get organizations
 
-Get information about the specified organization
+Get a list of organizations
 */
-type Get struct {
+type List struct {
 	Context *middleware.Context
-	Handler GetHandler
+	Handler ListHandler
 }
 
-func (o *Get) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (o *List) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	route, rCtx, _ := o.Context.RouteInfo(r)
 	if rCtx != nil {
 		*r = *rCtx
 	}
-	var Params = NewGetParams()
+	var Params = NewListParams()
 	uprinc, aCtx, err := o.Context.Authorize(r, route)
 	if err != nil {
 		o.Context.Respond(rw, r, route.Produces, route, err)

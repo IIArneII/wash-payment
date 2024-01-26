@@ -55,6 +55,12 @@ func NewWashPaymentAPI(spec *loads.Document) *WashPaymentAPI {
 		StandardHealthCheckHandler: standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams, principal *app.Auth) standard.HealthCheckResponder {
 			return standard.HealthCheckNotImplemented()
 		}),
+		OrganizationsListHandler: organizations.ListHandlerFunc(func(params organizations.ListParams, principal *app.Auth) organizations.ListResponder {
+			return organizations.ListNotImplemented()
+		}),
+		OrganizationsTransactionsHandler: organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *app.Auth) organizations.TransactionsResponder {
+			return organizations.TransactionsNotImplemented()
+		}),
 
 		// Applies when the "Authorization" header is set
 		AuthKeyAuth: func(token string) (*app.Auth, error) {
@@ -111,6 +117,10 @@ type WashPaymentAPI struct {
 	OrganizationsGetHandler organizations.GetHandler
 	// StandardHealthCheckHandler sets the operation handler for the health check operation
 	StandardHealthCheckHandler standard.HealthCheckHandler
+	// OrganizationsListHandler sets the operation handler for the list operation
+	OrganizationsListHandler organizations.ListHandler
+	// OrganizationsTransactionsHandler sets the operation handler for the transactions operation
+	OrganizationsTransactionsHandler organizations.TransactionsHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -200,6 +210,12 @@ func (o *WashPaymentAPI) Validate() error {
 	}
 	if o.StandardHealthCheckHandler == nil {
 		unregistered = append(unregistered, "standard.HealthCheckHandler")
+	}
+	if o.OrganizationsListHandler == nil {
+		unregistered = append(unregistered, "organizations.ListHandler")
+	}
+	if o.OrganizationsTransactionsHandler == nil {
+		unregistered = append(unregistered, "organizations.TransactionsHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -312,6 +328,14 @@ func (o *WashPaymentAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/healthCheck"] = standard.NewHealthCheck(o.context, o.StandardHealthCheckHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/organizations"] = organizations.NewList(o.context, o.OrganizationsListHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/organizations/{id}/transactions"] = organizations.NewTransactions(o.context, o.OrganizationsTransactionsHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

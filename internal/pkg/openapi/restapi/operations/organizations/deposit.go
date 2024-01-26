@@ -36,7 +36,7 @@ func NewDeposit(ctx *middleware.Context, handler DepositHandler) *Deposit {
 
 # Top up balance
 
-Increase the balance of the specified organization by the specified number of kopecks.
+Increase the balance of the specified organization by the specified number of kopecks
 */
 type Deposit struct {
 	Context *middleware.Context
