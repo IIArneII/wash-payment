@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   description: "Payment system service for self-service car washes"
   title: wash-payment
-  version: 1.0.0
+  version: 1.1.0
 consumes:
   - application/json
 produces:
@@ -35,13 +35,34 @@ paths:
               ok:
                 type: boolean
   
+  /organizations:
+    get:
+      tags:
+        - Organizations
+      operationId: list
+      summary: Get organizations
+      description: Get a list of organizations
+      security:
+        - authKey: []
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Organization"
+        403: {$ref: '#/responses/Forbidden'}
+        default: {$ref: '#/responses/InternalError'}
+
   /organizations/{id}:
     get:
       tags:
         - Organizations
-      operationId: Get
+      operationId: get
       summary: Get organization
-      description: Get information about the specified organization.
+      description: Get information about the specified organization
+      security:
+        - authKey: []
       parameters:
         - name: id
           in: path
@@ -61,9 +82,11 @@ paths:
     post:
       tags:
         - Organizations
-      operationId: Deposit
+      operationId: deposit
       summary: Top up balance
-      description: Increase the balance of the specified organization by the specified number of kopecks.
+      description: Increase the balance of the specified organization by the specified number of kopecks
+      security:
+        - authKey: []
       parameters:
         - name: id
           in: path
@@ -82,47 +105,28 @@ paths:
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
 
-  /organizations/balances:
+  /organizations/{id}/transactions:
     get:
       tags:
         - Organizations
-      operationId: getBalances
-      summary: Get organization balances
-      description: Get a list of organization balances.
+      operationId: transactions
+      summary: Get organization transactions
+      description: Get a list of transactions for the specified organization
       security:
         - authKey: []
-      responses:
-        200:
-          description: OK
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/OrganizationBalance"
-        403: {$ref: '#/responses/Forbidden'}
-        default: {$ref: '#/responses/InternalError'}
-
-  /organizations/{id}/operations:
-    get:
-      tags:
-        - Organizations
-      operationId: getOperations
-      summary: Get organization operations
-      description: Get a list of operations for the specified organization.
       parameters:
         - name: id
           in: path
           required: true
           type: string
           format: uuid
-      security:
-        - authKey: []
       responses:
         200:
           description: OK
           schema:
             type: array
             items:
-              $ref: "#/definitions/OrganizationOperation"
+              $ref: "#/definitions/Transaction"
         403: {$ref: '#/responses/Forbidden'}
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
@@ -194,41 +198,28 @@ definitions:
     - description
     - balance
 
-  OrganizationBalance:
+  Transaction:
     type: object
     properties:
-      organizationId:
+      id:
         type: string
         format: uuid
-      organizationName:
-        type: string
-      currentBalance:
-        description: Current balance in kopecks (RUB * 10^2)
-        type: integer
-        format: int64
-    required:
-      - organizationId
-      - organizationName
-      - currentBalance
-
-  OrganizationOperation:
-    type: object
-    properties:
-      operationId:
-        type: string
-        format: uuid
-      date:
+      createdAt:
         type: string
         format: date-time
-      type:
+      operation:
         type: string
-        enum: ["credit", "debit"]
-      moneyQuantity:
-        description: Money quantity in kopecks (RUB * 10^2)
+        enum: ["deposit", "debit"]
+      amount:
+        description: Amount in kopecks (RUB * 10^2)
         type: integer
         format: int64
+        minimum: 1
+      sevice:
+        type: string
     required:
-      - operationId
-      - date
-      - type
-      - moneyQuantity
+      - id
+      - createdAt
+      - operation
+      - amount
+      - sevice
