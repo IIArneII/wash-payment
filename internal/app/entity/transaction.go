@@ -16,6 +16,11 @@ type (
 		Sevice         string
 	}
 
+	TransactionFilter struct {
+		Filter
+		OrganizationID uuid.UUID
+	}
+
 	Operation string
 )
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 
 	opErrors "github.com/go-openapi/errors"
 	"go.uber.org/zap"
@@ -20,7 +21,7 @@ const authTimeout = time.Second * 10
 var ErrUnauthorized = opErrors.New(401, "unauthorized")
 
 type FirebaseService interface {
-	Auth(token string) (*app.Auth, error)
+	Auth(token string) (*entity.Auth, error)
 }
 
 type firebaseService struct {
@@ -56,7 +57,7 @@ func NewFirebaseService(l *zap.SugaredLogger, keyFilePath string, userSvc app.Us
 	}, nil
 }
 
-func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
+func (svc *firebaseService) Auth(bearer string) (*entity.Auth, error) {
 	svc.l.Infof("token: %s", bearer)
 
 	ctx, cancel := context.WithTimeout(context.Background(), authTimeout)
@@ -87,9 +88,9 @@ func (svc *firebaseService) Auth(bearer string) (*app.Auth, error) {
 	}
 	svc.l.Infof("user: %s", user.ID)
 
-	return &app.Auth{
+	return &entity.Auth{
 		User:         user,
 		Disabled:     fbUser.Disabled,
-		UserMetadata: (app.AuthUserMeta)(*fbUser.UserMetadata),
+		UserMetadata: (entity.AuthUserMeta)(*fbUser.UserMetadata),
 	}, nil
 }

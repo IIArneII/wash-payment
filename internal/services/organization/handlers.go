@@ -12,7 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizationID uuid.UUID) (entity.Organization, error) {
+func (s *organizationService) Get(ctx context.Context, auth entity.Auth, organizationID uuid.UUID) (entity.Organization, error) {
 	if auth.User.Role != entity.SystemManagerRole {
 		if auth.User.Role == entity.NoAccessRole {
 			return entity.Organization{}, app.ErrForbidden
@@ -37,6 +37,42 @@ func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizati
 	}
 
 	return conversions.OrganizationFromDB(organizationFromDB), nil
+}
+
+func (s *organizationService) List(ctx context.Context, auth entity.Auth, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error) {
+	if auth.User.Role != entity.SystemManagerRole {
+		return entity.Page[entity.Organization]{}, app.ErrForbidden
+	}
+
+	orgs, err := s.organizationRepo.List(ctx, filter)
+	if err != nil {
+		return entity.Page[entity.Organization]{}, err
+	}
+
+	return orgs, nil
+}
+
+func (s *organizationService) Transactions(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error) {
+	if auth.User.Role != entity.SystemManagerRole {
+		if auth.User.Role == entity.NoAccessRole {
+			return entity.Page[entity.Transaction]{}, app.ErrForbidden
+		}
+
+		if auth.User.OrganizationID == nil {
+			return entity.Page[entity.Transaction]{}, app.ErrForbidden
+		}
+
+		if auth.User.OrganizationID != &filter.OrganizationID {
+			return entity.Page[entity.Transaction]{}, app.ErrForbidden
+		}
+	}
+
+	txs, err := s.transactionRepo.List(ctx, filter)
+	if err != nil {
+		return entity.Page[entity.Transaction]{}, err
+	}
+
+	return txs, nil
 }
 
 func (s *organizationService) Upsert(ctx context.Context, organizationCreate entity.OrganizationCreate) (entity.Organization, error) {
@@ -91,7 +127,7 @@ func (s *organizationService) Delete(ctx context.Context, organizationID uuid.UU
 	return nil
 }
 
-func (s *organizationService) Deposit(ctx context.Context, auth app.Auth, organizationID uuid.UUID, amount int64) error {
+func (s *organizationService) Deposit(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, amount int64) error {
 	if auth.User.Role != entity.SystemManagerRole {
 		return app.ErrForbidden
 	}

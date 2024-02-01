@@ -22,6 +22,14 @@ func OrganizationFromDB(dbOrganization dbmodels.Organization) entity.Organizatio
 	}
 }
 
+func OrganizationsFromDB(organizations []dbmodels.Organization) []entity.Organization {
+	orgs := []entity.Organization{}
+	for _, v := range organizations {
+		orgs = append(orgs, OrganizationFromDB(v))
+	}
+	return orgs
+}
+
 func OrganizationCreateToDB(appOrganizationCreate entity.OrganizationCreate) dbmodels.Organization {
 	return dbmodels.Organization{
 		ID:          appOrganizationCreate.ID,
@@ -77,15 +85,24 @@ func OrganizationUpdateFromRabbit(rabbitOrganization rabbitEntity.Organization) 
 	}
 }
 
-func OrganizationToRest(appOrganizationCreate entity.Organization) models.Organization {
-	id := strfmt.UUID(appOrganizationCreate.ID.String())
+func OrganizationToRest(appOrganization entity.Organization) models.Organization {
+	id := strfmt.UUID(appOrganization.ID.String())
 	return models.Organization{
 		ID:          &id,
-		Name:        &appOrganizationCreate.Name,
-		DisplayName: &appOrganizationCreate.DisplayName,
-		Description: &appOrganizationCreate.Description,
-		Balance:     &appOrganizationCreate.Balance,
+		Name:        &appOrganization.Name,
+		DisplayName: &appOrganization.DisplayName,
+		Description: &appOrganization.Description,
+		Balance:     &appOrganization.Balance,
 	}
+}
+
+func OrganizationsToRest(appOrganizations entity.Page[entity.Organization]) []*models.Organization {
+	list := []*models.Organization{}
+	for _, v := range appOrganizations.Items {
+		org := OrganizationToRest(v)
+		list = append(list, &org)
+	}
+	return list
 }
 
 func OrganizationCreateToOrganizationUpdate(appOrganizationCreate entity.OrganizationCreate) entity.OrganizationUpdate {

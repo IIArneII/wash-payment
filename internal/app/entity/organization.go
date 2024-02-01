@@ -30,4 +30,8 @@ type (
 		Description *string
 		Version     *int64
 	}
+
+	OrganizationFilter struct {
+		Filter
+	}
 )

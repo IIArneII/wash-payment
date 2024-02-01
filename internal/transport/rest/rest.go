@@ -5,6 +5,7 @@ import (
 	"path"
 	"strings"
 	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/config"
 	"wash-payment/internal/pkg/openapi/restapi"
 	"wash-payment/internal/pkg/openapi/restapi/operations"
@@ -88,7 +89,7 @@ func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, 
 	return server, nil
 }
 
-func (svc *service) healthCheck(params standard.HealthCheckParams, profile *app.Auth) standard.HealthCheckResponder {
+func (svc *service) healthCheck(params standard.HealthCheckParams, profile *entity.Auth) standard.HealthCheckResponder {
 	svc.l.Info(profile.User.ID)
 	return standard.NewHealthCheckOK().WithPayload(&standard.HealthCheckOKBody{Ok: true})
 }
