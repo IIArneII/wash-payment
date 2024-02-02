@@ -9,11 +9,18 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+
+	"github.com/go-openapi/swag"
 )
 
 // ListURL generates an URL for the list operation
 type ListURL struct {
+	Page     *int64
+	PageSize *int64
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -39,6 +46,26 @@ func (o *ListURL) Build() (*url.URL, error) {
 
 	_basePath := o._basePath
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var pageQ string
+	if o.Page != nil {
+		pageQ = swag.FormatInt64(*o.Page)
+	}
+	if pageQ != "" {
+		qs.Set("page", pageQ)
+	}
+
+	var pageSizeQ string
+	if o.PageSize != nil {
+		pageSizeQ = swag.FormatInt64(*o.PageSize)
+	}
+	if pageSizeQ != "" {
+		qs.Set("pageSize", pageSizeQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

@@ -10,20 +10,20 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 
-	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 )
 
 // TransactionsHandlerFunc turns a function with the right signature into a transactions handler
-type TransactionsHandlerFunc func(TransactionsParams, *app.Auth) TransactionsResponder
+type TransactionsHandlerFunc func(TransactionsParams, *entity.Auth) TransactionsResponder
 
 // Handle executing the request and returning a response
-func (fn TransactionsHandlerFunc) Handle(params TransactionsParams, principal *app.Auth) TransactionsResponder {
+func (fn TransactionsHandlerFunc) Handle(params TransactionsParams, principal *entity.Auth) TransactionsResponder {
 	return fn(params, principal)
 }
 
 // TransactionsHandler interface for that can handle valid transactions params
 type TransactionsHandler interface {
-	Handle(TransactionsParams, *app.Auth) TransactionsResponder
+	Handle(TransactionsParams, *entity.Auth) TransactionsResponder
 }
 
 // NewTransactions creates a new http.Handler for the transactions operation
@@ -57,9 +57,9 @@ func (o *Transactions) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *app.Auth
+	var principal *entity.Auth
 	if uprinc != nil {
-		principal = uprinc.(*app.Auth) // this is really a app.Auth, I promise
+		principal = uprinc.(*entity.Auth) // this is really a entity.Auth, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

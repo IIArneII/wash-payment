@@ -10,20 +10,20 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 
-	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 )
 
 // GetHandlerFunc turns a function with the right signature into a get handler
-type GetHandlerFunc func(GetParams, *app.Auth) GetResponder
+type GetHandlerFunc func(GetParams, *entity.Auth) GetResponder
 
 // Handle executing the request and returning a response
-func (fn GetHandlerFunc) Handle(params GetParams, principal *app.Auth) GetResponder {
+func (fn GetHandlerFunc) Handle(params GetParams, principal *entity.Auth) GetResponder {
 	return fn(params, principal)
 }
 
 // GetHandler interface for that can handle valid get params
 type GetHandler interface {
-	Handle(GetParams, *app.Auth) GetResponder
+	Handle(GetParams, *entity.Auth) GetResponder
 }
 
 // NewGet creates a new http.Handler for the get operation
@@ -57,9 +57,9 @@ func (o *Get) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *app.Auth
+	var principal *entity.Auth
 	if uprinc != nil {
-		principal = uprinc.(*app.Auth) // this is really a app.Auth, I promise
+		principal = uprinc.(*entity.Auth) // this is really a entity.Auth, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

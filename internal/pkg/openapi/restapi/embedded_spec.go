@@ -70,14 +70,28 @@ func init() {
         ],
         "summary": "Get organizations",
         "operationId": "list",
+        "parameters": [
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Organization"
-              }
+              "$ref": "#/definitions/OrganizationPage"
             }
           },
           "403": {
@@ -198,16 +212,28 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Transaction"
-              }
+              "$ref": "#/definitions/TransactionPage"
             }
           },
           "403": {
@@ -285,6 +311,36 @@ func init() {
         }
       }
     },
+    "OrganizationPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Organization"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
     "Transaction": {
       "type": "object",
       "required": [
@@ -318,6 +374,36 @@ func init() {
         },
         "sevice": {
           "type": "string"
+        }
+      }
+    },
+    "TransactionPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Transaction"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
         }
       }
     }
@@ -355,12 +441,7 @@ func init() {
       "name": "Authorization",
       "in": "header"
     }
-  },
-  "security": [
-    {
-      "authKey": []
-    }
-  ]
+  }
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
   "consumes": [
@@ -415,14 +496,28 @@ func init() {
         ],
         "summary": "Get organizations",
         "operationId": "list",
+        "parameters": [
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Organization"
-              }
+              "$ref": "#/definitions/OrganizationPage"
             }
           },
           "403": {
@@ -570,16 +665,28 @@ func init() {
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Transaction"
-              }
+              "$ref": "#/definitions/TransactionPage"
             }
           },
           "403": {
@@ -667,6 +774,36 @@ func init() {
         }
       }
     },
+    "OrganizationPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Organization"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
     "Transaction": {
       "type": "object",
       "required": [
@@ -700,6 +837,36 @@ func init() {
         },
         "sevice": {
           "type": "string"
+        }
+      }
+    },
+    "TransactionPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Transaction"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
         }
       }
     }
@@ -737,11 +904,6 @@ func init() {
       "name": "Authorization",
       "in": "header"
     }
-  },
-  "security": [
-    {
-      "authKey": []
-    }
-  ]
+  }
 }`))
 }

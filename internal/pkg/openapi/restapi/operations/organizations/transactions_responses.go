@@ -27,7 +27,7 @@ type TransactionsOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*models.Transaction `json:"body,omitempty"`
+	Payload *models.TransactionPage `json:"body,omitempty"`
 }
 
 // NewTransactionsOK creates TransactionsOK with default headers values
@@ -37,13 +37,13 @@ func NewTransactionsOK() *TransactionsOK {
 }
 
 // WithPayload adds the payload to the transactions o k response
-func (o *TransactionsOK) WithPayload(payload []*models.Transaction) *TransactionsOK {
+func (o *TransactionsOK) WithPayload(payload *models.TransactionPage) *TransactionsOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the transactions o k response
-func (o *TransactionsOK) SetPayload(payload []*models.Transaction) {
+func (o *TransactionsOK) SetPayload(payload *models.TransactionPage) {
 	o.Payload = payload
 }
 
@@ -51,14 +51,11 @@ func (o *TransactionsOK) SetPayload(payload []*models.Transaction) {
 func (o *TransactionsOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.WriteHeader(200)
-	payload := o.Payload
-	if payload == nil {
-		// return empty array
-		payload = make([]*models.Transaction, 0, 50)
-	}
-
-	if err := producer.Produce(rw, payload); err != nil {
-		panic(err) // let the recovery middleware deal with this
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
 	}
 }
 

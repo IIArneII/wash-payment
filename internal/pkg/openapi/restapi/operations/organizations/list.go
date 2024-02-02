@@ -10,20 +10,20 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 
-	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 )
 
 // ListHandlerFunc turns a function with the right signature into a list handler
-type ListHandlerFunc func(ListParams, *app.Auth) ListResponder
+type ListHandlerFunc func(ListParams, *entity.Auth) ListResponder
 
 // Handle executing the request and returning a response
-func (fn ListHandlerFunc) Handle(params ListParams, principal *app.Auth) ListResponder {
+func (fn ListHandlerFunc) Handle(params ListParams, principal *entity.Auth) ListResponder {
 	return fn(params, principal)
 }
 
 // ListHandler interface for that can handle valid list params
 type ListHandler interface {
-	Handle(ListParams, *app.Auth) ListResponder
+	Handle(ListParams, *entity.Auth) ListResponder
 }
 
 // NewList creates a new http.Handler for the list operation
@@ -57,9 +57,9 @@ func (o *List) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		*r = *aCtx
 	}
-	var principal *app.Auth
+	var principal *entity.Auth
 	if uprinc != nil {
-		principal = uprinc.(*app.Auth) // this is really a app.Auth, I promise
+		principal = uprinc.(*entity.Auth) // this is really a entity.Auth, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

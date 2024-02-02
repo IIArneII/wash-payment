@@ -9,13 +9,13 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 
-	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/pkg/openapi/restapi/operations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/standard"
 )
 
-//go:generate swagger generate server --target ../../openapi --name WashPayment --spec ../swagger.yaml --principal wash-payment/internal/app.Auth --exclude-main --strict-responders
+//go:generate swagger generate server --target ../../openapi --name WashPayment --spec ../swagger.yaml --principal wash-payment/internal/app/entity.Auth --exclude-main --strict-responders
 
 func configureFlags(api *operations.WashPaymentAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -41,7 +41,7 @@ func configureAPI(api *operations.WashPaymentAPI) http.Handler {
 
 	// Applies when the "Authorization" header is set
 	if api.AuthKeyAuth == nil {
-		api.AuthKeyAuth = func(token string) (*app.Auth, error) {
+		api.AuthKeyAuth = func(token string) (*entity.Auth, error) {
 			return nil, errors.NotImplemented("api key auth (authKey) Authorization from header param [Authorization] has not yet been implemented")
 		}
 	}
@@ -53,27 +53,27 @@ func configureAPI(api *operations.WashPaymentAPI) http.Handler {
 	// api.APIAuthorizer = security.Authorized()
 
 	if api.OrganizationsDepositHandler == nil {
-		api.OrganizationsDepositHandler = organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *app.Auth) organizations.DepositResponder {
+		api.OrganizationsDepositHandler = organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *entity.Auth) organizations.DepositResponder {
 			return organizations.DepositNotImplemented()
 		})
 	}
 	if api.OrganizationsGetHandler == nil {
-		api.OrganizationsGetHandler = organizations.GetHandlerFunc(func(params organizations.GetParams, principal *app.Auth) organizations.GetResponder {
+		api.OrganizationsGetHandler = organizations.GetHandlerFunc(func(params organizations.GetParams, principal *entity.Auth) organizations.GetResponder {
 			return organizations.GetNotImplemented()
 		})
 	}
 	if api.StandardHealthCheckHandler == nil {
-		api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams, principal *app.Auth) standard.HealthCheckResponder {
+		api.StandardHealthCheckHandler = standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams) standard.HealthCheckResponder {
 			return standard.HealthCheckNotImplemented()
 		})
 	}
 	if api.OrganizationsListHandler == nil {
-		api.OrganizationsListHandler = organizations.ListHandlerFunc(func(params organizations.ListParams, principal *app.Auth) organizations.ListResponder {
+		api.OrganizationsListHandler = organizations.ListHandlerFunc(func(params organizations.ListParams, principal *entity.Auth) organizations.ListResponder {
 			return organizations.ListNotImplemented()
 		})
 	}
 	if api.OrganizationsTransactionsHandler == nil {
-		api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *app.Auth) organizations.TransactionsResponder {
+		api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *entity.Auth) organizations.TransactionsResponder {
 			return organizations.TransactionsNotImplemented()
 		})
 	}

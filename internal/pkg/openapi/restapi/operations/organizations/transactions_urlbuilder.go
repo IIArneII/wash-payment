@@ -12,11 +12,15 @@ import (
 	"strings"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 // TransactionsURL generates an URL for the transactions operation
 type TransactionsURL struct {
 	ID strfmt.UUID
+
+	Page     *int64
+	PageSize *int64
 
 	_basePath string
 	// avoid unkeyed usage
@@ -53,6 +57,26 @@ func (o *TransactionsURL) Build() (*url.URL, error) {
 
 	_basePath := o._basePath
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var pageQ string
+	if o.Page != nil {
+		pageQ = swag.FormatInt64(*o.Page)
+	}
+	if pageQ != "" {
+		qs.Set("page", pageQ)
+	}
+
+	var pageSizeQ string
+	if o.PageSize != nil {
+		pageSizeQ = swag.FormatInt64(*o.PageSize)
+	}
+	if pageSizeQ != "" {
+		qs.Set("pageSize", pageSizeQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }
