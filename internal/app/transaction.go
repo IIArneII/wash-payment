@@ -9,6 +9,10 @@ import (
 )
 
 type (
+	TransactionService interface {
+		Transactions(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error)
+	}
+
 	TransactionRepo interface {
 		Get(ctx context.Context, transactionID uuid.UUID) (dbmodels.Transaction, error)
 		List(ctx context.Context, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error)

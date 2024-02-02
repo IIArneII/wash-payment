@@ -12,7 +12,6 @@ type (
 	OrganizationService interface {
 		Get(ctx context.Context, auth entity.Auth, organizationID uuid.UUID) (entity.Organization, error)
 		List(ctx context.Context, auth entity.Auth, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error)
-		Transactions(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error)
 		Upsert(ctx context.Context, organization entity.OrganizationCreate) (entity.Organization, error)
 		Delete(ctx context.Context, organizationID uuid.UUID) error
 		Deposit(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, amount int64) error

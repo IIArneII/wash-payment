@@ -3,7 +3,6 @@ package entity
 type (
 	Auth struct {
 		User         User
-		Disabled     bool
 		UserMetadata AuthUserMeta
 	}
 

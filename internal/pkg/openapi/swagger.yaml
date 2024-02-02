@@ -15,8 +15,6 @@ securityDefinitions:
     type: apiKey
     in: header
     name: Authorization
-security:
-  - authKey: []
 
 paths:
   /healthCheck:
@@ -44,13 +42,23 @@ paths:
       description: Get a list of organizations
       security:
         - authKey: []
+      parameters:
+        - name: page
+          in: query
+          type: integer
+          default: 1
+          minimum: 1
+        - name: pageSize
+          in: query
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 1
       responses:
         200:
           description: OK
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/Organization"
+            $ref: "#/definitions/OrganizationPage"
         403: {$ref: '#/responses/Forbidden'}
         default: {$ref: '#/responses/InternalError'}
 
@@ -120,13 +128,22 @@ paths:
           required: true
           type: string
           format: uuid
+        - name: page
+          in: query
+          type: integer
+          default: 1
+          minimum: 1
+        - name: pageSize
+          in: query
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 1
       responses:
         200:
           description: OK
           schema:
-            type: array
-            items:
-              $ref: "#/definitions/Transaction"
+            $ref: "#/definitions/TransactionPage"
         403: {$ref: '#/responses/Forbidden'}
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
@@ -197,6 +214,28 @@ definitions:
     - displayName
     - description
     - balance
+  
+  OrganizationPage:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/Organization"
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      totalPages:
+        type: integer
+      totalItems:
+        type: integer
+    required:
+      - items
+      - page
+      - pageSize
+      - totalPages
+      - totalItems
 
   Transaction:
     type: object
@@ -223,3 +262,25 @@ definitions:
       - operation
       - amount
       - sevice
+  
+  TransactionPage:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/Transaction"
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      totalPages:
+        type: integer
+      totalItems:
+        type: integer
+    required:
+      - items
+      - page
+      - pageSize
+      - totalPages
+      - totalItems
