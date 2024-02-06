@@ -18,5 +18,6 @@ type (
 		DisplayName *string `db:"display_name"`
 		Description *string `db:"description"`
 		Version     *int64  `db:"version"`
+		Deleted     *bool   `db:"deleted"`
 	}
 )

@@ -3,9 +3,6 @@ package conversions
 import (
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
-	"wash-payment/internal/pkg/openapi/models"
-
-	"github.com/go-openapi/strfmt"
 )
 
 func TransactionOperationFromDb(operation dbmodels.Operation) entity.Operation {
@@ -16,6 +13,17 @@ func TransactionOperationFromDb(operation dbmodels.Operation) entity.Operation {
 		return entity.DebitOperation
 	default:
 		panic("Unknown db operation: " + operation)
+	}
+}
+
+func TransactionOperationToDb(operation entity.Operation) dbmodels.Operation {
+	switch operation {
+	case entity.DepositOperation:
+		return dbmodels.DepositOperation
+	case entity.DebitOperation:
+		return dbmodels.DebitOperation
+	default:
+		panic("Unknown app operation: " + operation)
 	}
 }
 
@@ -38,24 +46,13 @@ func TransactionsFromDB(transactions []dbmodels.Transaction) []entity.Transactio
 	return txs
 }
 
-func TransactionToRest(transaction entity.Transaction) models.Transaction {
-	id := strfmt.UUID(transaction.ID.String())
-	op := (string)(transaction.Operation)
-	createAt := strfmt.DateTime(transaction.CreatedAt)
-	return models.Transaction{
-		ID:        &id,
-		Operation: &op,
-		Sevice:    &transaction.Sevice,
-		CreatedAt: &createAt,
-		Amount:    &transaction.Amount,
+func TransactionToDB(transaction entity.Transaction) dbmodels.Transaction {
+	return dbmodels.Transaction{
+		ID:             transaction.ID,
+		OrganizationID: transaction.OrganizationID,
+		Amount:         transaction.Amount,
+		CreatedAt:      transaction.CreatedAt,
+		Sevice:         transaction.Sevice,
+		Operation:      TransactionOperationToDb(transaction.Operation),
 	}
-}
-
-func TransactionsToRest(transactions entity.Page[entity.Transaction]) []*models.Transaction {
-	txs := []*models.Transaction{}
-	for _, v := range transactions.Items {
-		tx := TransactionToRest(v)
-		txs = append(txs, &tx)
-	}
-	return txs
 }

@@ -6,7 +6,7 @@ import (
 	"wash-payment/internal/app/entity"
 )
 
-func (s *transactionService) Transactions(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error) {
+func (s *transactionService) List(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error) {
 	if auth.User.Role != entity.SystemManagerRole {
 		if auth.User.Role == entity.NoAccessRole {
 			return entity.Page[entity.Transaction]{}, app.ErrForbidden

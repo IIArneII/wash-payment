@@ -12,7 +12,6 @@ import (
 func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 	cxt, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	svc.l.Info("TYPE -> ", d.Type)
 
 	switch entity.MessageType(d.Type) {
 	case entity.OrganizationMessageType:
@@ -60,9 +59,8 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		}
 
 	case entity.WithdrawalMessageType:
-		var msg entity.Payment
+		var msg entity.Withdrawal
 		err := json.Unmarshal(d.Body, &msg)
-
 		if err != nil {
 			svc.l.Info(err)
 			return rabbitmq.NackDiscard
@@ -73,7 +71,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			svc.l.Info(err)
 			return rabbitmq.NackDiscard
 		}
-		_ = svc.SendMessage(nil, entity.WashBonusExchange, entity.WashPaymentRoutingKey, entity.WithdrawalMessageType)
+		_ = svc.SendMessage(nil, entity.WashBonusExchange, entity.WashPaymentRoutingKey, entity.WithdrawalResultMessageType)
 
 	default:
 		return rabbitmq.NackDiscard

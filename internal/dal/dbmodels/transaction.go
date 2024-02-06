@@ -13,7 +13,7 @@ type (
 		Amount         int64     `db:"amount"`
 		Operation      Operation `db:"operation"`
 		CreatedAt      time.Time `db:"created_at"`
-		Sevice         string    `db:"sevice"`
+		Sevice         *string   `db:"sevice"`
 	}
 
 	Operation string

@@ -6,5 +6,6 @@ const (
 	GroupTable         string = "groups"
 	TransactionTable   string = "transactions"
 
-	ByIDCondition string = "id = ? AND NOT deleted"
+	ByIDCondition string = "id = ?"
+	CountSelect   string = "COUNT(*)"
 )

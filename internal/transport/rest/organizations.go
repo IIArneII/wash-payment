@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"wash-payment/internal/app"
-	"wash-payment/internal/app/conversions"
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/pkg/openapi/restapi/operations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
+	"wash-payment/internal/transport/rest/conversions"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -60,7 +60,12 @@ func (svc *service) list(params organizations.ListParams, profile *entity.Auth) 
 	op := "List organizations: "
 	resp := organizations.NewListDefault(http.StatusInternalServerError)
 
-	org, err := svc.services.OrganizationService.List(params.HTTPRequest.Context(), *profile, entity.OrganizationFilter{})
+	org, err := svc.services.OrganizationService.List(params.HTTPRequest.Context(), *profile, entity.OrganizationFilter{
+		Filter: entity.Filter{
+			Page:     int(*params.Page),
+			PageSize: int(*params.PageSize),
+		},
+	})
 	if err != nil {
 		setAPIError(svc.l, op, err, resp)
 		return resp
@@ -74,7 +79,19 @@ func (svc *service) transactions(params organizations.TransactionsParams, profil
 	op := "Transactions organizations: "
 	resp := organizations.NewTransactionsDefault(http.StatusInternalServerError)
 
-	txs, err := svc.services.OrganizationService.Transactions(params.HTTPRequest.Context(), *profile, entity.TransactionFilter{})
+	id, err := uuid.FromString(params.ID.String())
+	if err != nil {
+		setAPIError(svc.l, op, fmt.Errorf("Wrong organization ID: %w", app.ErrBadRequest), resp)
+		return resp
+	}
+
+	txs, err := svc.services.TransactionService.List(params.HTTPRequest.Context(), *profile, entity.TransactionFilter{
+		Filter: entity.Filter{
+			Page:     int(*params.Page),
+			PageSize: int(*params.PageSize),
+		},
+		OrganizationID: id,
+	})
 	if err != nil {
 		setAPIError(svc.l, op, err, resp)
 		return resp

@@ -2,18 +2,18 @@ package dal
 
 import (
 	"testing"
-	"wash-payment/internal/app/conversions"
+	"wash-payment/internal/app"
 	"wash-payment/internal/app/entity"
-	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/powerman/check"
 	uuid "github.com/satori/go.uuid"
 )
 
-// TODO: Переписать тесты для Транзакций(Добавил поля новые), тесты для организаций(withDrowal и deposit)
 func TestCreateOrganization(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
@@ -27,16 +27,18 @@ func TestCreateOrganization(tt *testing.T) {
 	t.DeepEqual(res2, organization2)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization2)
-	t.Err(err, dbmodels.ErrAlreadyExists)
+	t.Err(err, app.ErrAlreadyExists)
 }
 
 func TestGetOrganization(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
 
-	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
 
 	resGet1, err := repositories.OrganizationRepo.Get(ctx, organization1.ID)
@@ -44,112 +46,120 @@ func TestGetOrganization(tt *testing.T) {
 	t.DeepEqual(resGet1, organization1)
 
 	_, err = repositories.OrganizationRepo.Get(ctx, organization2.ID)
-	t.Err(err, dbmodels.ErrNotFound)
+	t.Err(err, app.ErrNotFound)
 }
 
 func TestUpdateOrganization(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
 
-	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
 
-	newName := randomdata.FirstName(randomdata.Male)
-	newDescription := randomdata.RandStringRunes(50)
-	newDisplayName := uuid.NewV4().String()
-	newVersion := int64(2)
-	organizationUpdate := dbmodels.OrganizationUpdate{
-		Name:        &newName,
-		DisplayName: &newDisplayName,
-		Description: &newDescription,
-		Version:     &newVersion,
+	organization1.Name = randomdata.FirstName(randomdata.Male)
+	organization1.Description = randomdata.RandStringRunes(50)
+	organization1.DisplayName = uuid.NewV4().String()
+	organization1.Version = int64(2)
+	organizationUpdate := entity.OrganizationUpdate{
+		Name:        &organization1.Name,
+		DisplayName: &organization1.DisplayName,
+		Description: &organization1.Description,
+		Version:     &organization1.Version,
 	}
 
-	err = repositories.OrganizationRepo.Update(ctx, organization1.ID, organizationUpdate)
+	updatedOrg1, err := repositories.OrganizationRepo.Update(ctx, organization1.ID, organizationUpdate)
 	t.Nil(err)
+	t.DeepEqual(updatedOrg1, organization1)
 
-	organization1.Name = newName
-	organization1.Description = newDescription
-	organization1.DisplayName = newDisplayName
-	organization1.Version = newVersion
+	_, err = repositories.OrganizationRepo.Update(ctx, organization1.ID, entity.OrganizationUpdate{})
+	t.Err(err, app.ErrEmptyUpdate)
 
-	resGet1, err := repositories.OrganizationRepo.Get(ctx, organization1.ID)
-	t.Nil(err)
-	t.DeepEqual(resGet1, organization1)
+	_, err = repositories.OrganizationRepo.Update(ctx, organization2.ID, organizationUpdate)
+	t.Err(err, app.ErrNotFound)
 
-	err = repositories.OrganizationRepo.Update(ctx, organization1.ID, dbmodels.OrganizationUpdate{})
-	t.Err(err, dbmodels.ErrEmptyUpdate)
-
-	err = repositories.OrganizationRepo.Update(ctx, organization2.ID, organizationUpdate)
-	t.Err(err, dbmodels.ErrNotFound)
-
-	newVersion = 1
-	newName = randomdata.FullName(randomdata.RandomGender)
-	organizationUpdate = dbmodels.OrganizationUpdate{
-		Name:    &newName,
-		Version: &newVersion,
+	organization1.Version = int64(1)
+	organizationUpdate = entity.OrganizationUpdate{
+		Version: &organization1.Version,
 	}
-	err = repositories.OrganizationRepo.Update(ctx, organization1.ID, organizationUpdate)
-	t.Err(err, dbmodels.ErrNotFound)
+	_, err = repositories.OrganizationRepo.Update(ctx, organization1.ID, organizationUpdate)
+	t.Err(err, app.ErrNotFound)
+
+	organization1.Version = int64(3)
+	organization1.Deleted = true
+	organizationUpdate = entity.OrganizationUpdate{
+		Deleted: &organization1.Deleted,
+		Version: &organization1.Version,
+	}
+	updatedOrg1, err = repositories.OrganizationRepo.Update(ctx, organization1.ID, organizationUpdate)
+	t.Nil(err)
+	t.DeepEqual(updatedOrg1, organization1)
 }
 
-func TestDeleteOrganization(tt *testing.T) {
+func TestListOrganization(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
 	var organization1 = generateOrganization(10000, 1)
+	var organization2 = generateOrganization(10000, 1)
+	organization1.Name = "a"
+	organization2.Name = "b"
 
-	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
 
-	err = repositories.OrganizationRepo.Delete(ctx, organization1.ID)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization2)
 	t.Nil(err)
 
-	_, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
-	t.Err(err, dbmodels.ErrNotFound)
-}
-
-func TestUpsertServiceOrgnization(tt *testing.T) {
-	t := check.T(tt)
-
-	var organization1 = generateOrganizationCreate(10000, 1)
-	var organization2 = generateOrganizationCreate(10000, 1)
-	//TEST CREATE
-	var organizationTest = conversions.OrganizationFromDB(conversions.OrganizationCreateToDB(organization1))
-	var organizationTest2 = conversions.OrganizationFromDB(conversions.OrganizationCreateToDB(organization2))
-
-	res1, err := service.OrganizationService.Upsert(ctx, organization1)
+	filter := entity.OrganizationFilter{Filter: entity.Filter{
+		Page:     1,
+		PageSize: 10,
+	}}
+	list, err := repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.DeepEqual(res1, organizationTest)
+	t.Equal(list.Page, filter.Page)
+	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 1)
+	t.DeepEqual(list.Items, []entity.Organization{organization1, organization2})
 
-	res2, err := service.OrganizationService.Upsert(ctx, organization2)
+	filter = entity.OrganizationFilter{Filter: entity.Filter{
+		Page:     10,
+		PageSize: 10,
+	}}
+	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.DeepEqual(res2, organizationTest2)
+	t.Equal(list.Page, filter.Page)
+	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 1)
+	t.DeepEqual(list.Items, []entity.Organization{})
 
-	_, err = service.OrganizationService.Upsert(ctx, organization2)
+	filter = entity.OrganizationFilter{Filter: entity.Filter{
+		Page:     1,
+		PageSize: 1,
+	}}
+	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
+	t.Equal(list.Page, filter.Page)
+	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 2)
+	t.DeepEqual(list.Items, []entity.Organization{organization1})
 
-	// TEST UPDATE
-
-	newName := randomdata.FirstName(randomdata.Male)
-	newDescription := randomdata.RandStringRunes(50)
-	newDisplayName := uuid.NewV4().String()
-	newVersion := int64(2)
-
-	organization1.Name = newName
-	organization1.Description = newDescription
-	organization1.DisplayName = newDisplayName
-	organization1.Version = newVersion
-
-	_, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	filter = entity.OrganizationFilter{Filter: entity.Filter{
+		Page:     2,
+		PageSize: 1,
+	}}
+	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-
-	_, err = service.OrganizationService.Upsert(ctx, entity.OrganizationCreate{})
-	t.Err(err, dbmodels.ErrNotFound)
-
-	resUpdate, err := service.OrganizationService.Upsert(ctx, organization1)
-	t.Nil(err)
-	t.DeepEqual(resUpdate, entity.Organization{})
-
+	t.Equal(list.Page, filter.Page)
+	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 2)
+	t.DeepEqual(list.Items, []entity.Organization{organization2})
 }

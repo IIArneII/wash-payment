@@ -13,7 +13,7 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
-		Sevice         string
+		Sevice         *string
 	}
 
 	TransactionFilter struct {

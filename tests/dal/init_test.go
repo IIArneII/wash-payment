@@ -27,6 +27,7 @@ const (
 )
 
 var (
+	dbConnection *dbr.Connection
 	repositories *app.Repositories
 	service      *app.Services
 	ctx          = context.Background()
@@ -56,6 +57,7 @@ func TestMain(m *testing.M) {
 		l.Info("close db connection")
 	}()
 
+	dbConnection = dbConn
 	repositories = dal.NewRepositories(l, dbConn)
 	service = services.NewServices(l, repositories)
 
@@ -127,4 +129,26 @@ func getFreePort() (port int, err error) {
 
 func dns(user, password, dbname, host string, port int) string {
 	return fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable", user, password, dbname, host, port)
+}
+
+func truncate() error {
+	_, err := dbConnection.Exec(`
+		do $$
+		DECLARE
+			seq_name text; 
+			statements CURSOR FOR
+				SELECT tablename FROM pg_tables
+				WHERE schemaname = 'public';
+		BEGIN
+			FOR stmt IN statements LOOP
+				EXECUTE 'TRUNCATE TABLE ' || quote_ident(stmt.tablename) || ' CASCADE;';
+			END LOOP;
+
+			FOR seq_name IN (SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public') LOOP 
+			EXECUTE 'SELECT setval(' || quote_literal(seq_name) || ', 1, false)'; 
+			END LOOP;
+
+		END $$ LANGUAGE plpgsql;
+	`)
+	return err
 }
