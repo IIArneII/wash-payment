@@ -2,18 +2,20 @@ package dal
 
 import (
 	"testing"
-	"wash-payment/internal/dal/dbmodels"
+	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/powerman/check"
-	uuid "github.com/satori/go.uuid"
 )
 
 func TestCreateUser(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
-	var user1 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
-	var user2 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
+	var user1 = generateUser(entity.AdminRole, nil, 1)
+	var user2 = generateUser(entity.AdminRole, nil, 1)
 
 	res1, err := repositories.UserRepo.Create(ctx, user1)
 	t.Nil(err)
@@ -24,16 +26,18 @@ func TestCreateUser(tt *testing.T) {
 	t.DeepEqual(res2, user2)
 
 	_, err = repositories.UserRepo.Create(ctx, user2)
-	t.Err(err, dbmodels.ErrAlreadyExists)
+	t.Err(err, app.ErrAlreadyExists)
 }
 
 func TestGetUser(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
-	var user1 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
-	var user2 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
+	var user1 = generateUser(entity.AdminRole, nil, 1)
+	var user2 = generateUser(entity.AdminRole, nil, 1)
 
-	_, err := repositories.UserRepo.Create(ctx, user1)
+	_, err = repositories.UserRepo.Create(ctx, user1)
 	t.Nil(err)
 
 	resGet1, err := repositories.UserRepo.Get(ctx, user1.ID)
@@ -41,53 +45,45 @@ func TestGetUser(tt *testing.T) {
 	t.DeepEqual(resGet1, user1)
 
 	_, err = repositories.UserRepo.Get(ctx, user2.ID)
-	t.Err(err, dbmodels.ErrNotFound)
+	t.Err(err, app.ErrNotFound)
 }
 
 func TestUpdateUser(tt *testing.T) {
 	t := check.T(tt)
-
-	var user1 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
-	var user2 = generateUser(dbmodels.AdminRole, uuid.NullUUID{}, 1)
-
-	_, err := repositories.UserRepo.Create(ctx, user1)
+	err := truncate()
 	t.Nil(err)
 
-	newRole := dbmodels.SystemManagerRole
-	newVersion := 2
-	newEmail := randomdata.Email()
-	newName := randomdata.FullName(randomdata.RandomGender)
-	updateUser := dbmodels.UserUpdate{
-		Role:    &newRole,
-		Email:   &newEmail,
-		Name:    &newName,
-		Version: &newVersion,
+	var user1 = generateUser(entity.AdminRole, nil, 1)
+	var user2 = generateUser(entity.AdminRole, nil, 1)
+
+	_, err = repositories.UserRepo.Create(ctx, user1)
+	t.Nil(err)
+
+	user1.Role = entity.SystemManagerRole
+	user1.Email = randomdata.Email()
+	user1.Name = randomdata.FullName(randomdata.RandomGender)
+	user1.Version = int64(2)
+	updateUser := entity.UserUpdate{
+		Role:    &user1.Role,
+		Email:   &user1.Email,
+		Name:    &user1.Name,
+		Version: &user1.Version,
 	}
 
-	err = repositories.UserRepo.Update(ctx, user1.ID, updateUser)
+	updatedUser1, err := repositories.UserRepo.Update(ctx, user1.ID, updateUser)
 	t.Nil(err)
+	t.DeepEqual(updatedUser1, user1)
 
-	user1.Role = dbmodels.SystemManagerRole
-	user1.Email = newEmail
-	user1.Name = newName
-	user1.Version = newVersion
+	_, err = repositories.UserRepo.Update(ctx, user1.ID, entity.UserUpdate{})
+	t.Err(err, app.ErrEmptyUpdate)
 
-	resGet1, err := repositories.UserRepo.Get(ctx, user1.ID)
-	t.Nil(err)
-	t.DeepEqual(resGet1, user1)
+	_, err = repositories.UserRepo.Update(ctx, user2.ID, updateUser)
+	t.Err(err, app.ErrNotFound)
 
-	err = repositories.UserRepo.Update(ctx, user1.ID, dbmodels.UserUpdate{})
-	t.Err(err, dbmodels.ErrEmptyUpdate)
-
-	err = repositories.UserRepo.Update(ctx, user2.ID, updateUser)
-	t.Err(err, dbmodels.ErrNotFound)
-
-	newVersion = 1
-	newName = randomdata.FullName(randomdata.RandomGender)
-	updateUser = dbmodels.UserUpdate{
-		Name:    &newName,
-		Version: &newVersion,
+	user1.Version = int64(1)
+	updateUser = entity.UserUpdate{
+		Version: &user1.Version,
 	}
-	err = repositories.UserRepo.Update(ctx, user1.ID, updateUser)
-	t.Err(err, dbmodels.ErrNotFound)
+	_, err = repositories.UserRepo.Update(ctx, user1.ID, updateUser)
+	t.Err(err, app.ErrNotFound)
 }

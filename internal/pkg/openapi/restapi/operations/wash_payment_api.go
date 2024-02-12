@@ -19,7 +19,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
 	"wash-payment/internal/pkg/openapi/restapi/operations/standard"
 )
@@ -46,18 +46,24 @@ func NewWashPaymentAPI(spec *loads.Document) *WashPaymentAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		OrganizationsDepositHandler: organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *app.Auth) organizations.DepositResponder {
+		OrganizationsDepositHandler: organizations.DepositHandlerFunc(func(params organizations.DepositParams, principal *entity.Auth) organizations.DepositResponder {
 			return organizations.DepositNotImplemented()
 		}),
-		OrganizationsGetHandler: organizations.GetHandlerFunc(func(params organizations.GetParams, principal *app.Auth) organizations.GetResponder {
+		OrganizationsGetHandler: organizations.GetHandlerFunc(func(params organizations.GetParams, principal *entity.Auth) organizations.GetResponder {
 			return organizations.GetNotImplemented()
 		}),
-		StandardHealthCheckHandler: standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams, principal *app.Auth) standard.HealthCheckResponder {
+		StandardHealthCheckHandler: standard.HealthCheckHandlerFunc(func(params standard.HealthCheckParams) standard.HealthCheckResponder {
 			return standard.HealthCheckNotImplemented()
+		}),
+		OrganizationsListHandler: organizations.ListHandlerFunc(func(params organizations.ListParams, principal *entity.Auth) organizations.ListResponder {
+			return organizations.ListNotImplemented()
+		}),
+		OrganizationsTransactionsHandler: organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *entity.Auth) organizations.TransactionsResponder {
+			return organizations.TransactionsNotImplemented()
 		}),
 
 		// Applies when the "Authorization" header is set
-		AuthKeyAuth: func(token string) (*app.Auth, error) {
+		AuthKeyAuth: func(token string) (*entity.Auth, error) {
 			return nil, errors.NotImplemented("api key auth (authKey) Authorization from header param [Authorization] has not yet been implemented")
 		},
 		// default authorizer is authorized meaning no requests are blocked
@@ -100,7 +106,7 @@ type WashPaymentAPI struct {
 
 	// AuthKeyAuth registers a function that takes a token and returns a principal
 	// it performs authentication based on an api key Authorization provided in the header
-	AuthKeyAuth func(string) (*app.Auth, error)
+	AuthKeyAuth func(string) (*entity.Auth, error)
 
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
@@ -111,6 +117,10 @@ type WashPaymentAPI struct {
 	OrganizationsGetHandler organizations.GetHandler
 	// StandardHealthCheckHandler sets the operation handler for the health check operation
 	StandardHealthCheckHandler standard.HealthCheckHandler
+	// OrganizationsListHandler sets the operation handler for the list operation
+	OrganizationsListHandler organizations.ListHandler
+	// OrganizationsTransactionsHandler sets the operation handler for the transactions operation
+	OrganizationsTransactionsHandler organizations.TransactionsHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -200,6 +210,12 @@ func (o *WashPaymentAPI) Validate() error {
 	}
 	if o.StandardHealthCheckHandler == nil {
 		unregistered = append(unregistered, "standard.HealthCheckHandler")
+	}
+	if o.OrganizationsListHandler == nil {
+		unregistered = append(unregistered, "organizations.ListHandler")
+	}
+	if o.OrganizationsTransactionsHandler == nil {
+		unregistered = append(unregistered, "organizations.TransactionsHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -312,6 +328,14 @@ func (o *WashPaymentAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/healthCheck"] = standard.NewHealthCheck(o.context, o.StandardHealthCheckHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/organizations"] = organizations.NewList(o.context, o.OrganizationsListHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/organizations/{id}/transactions"] = organizations.NewTransactions(o.context, o.OrganizationsTransactionsHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

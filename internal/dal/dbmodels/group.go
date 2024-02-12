@@ -1,6 +1,8 @@
 package dbmodels
 
-import uuid "github.com/satori/go.uuid"
+import (
+	uuid "github.com/satori/go.uuid"
+)
 
 type (
 	Group struct {
@@ -16,5 +18,6 @@ type (
 		Version     *int64  `db:"version"`
 		Name        *string `db:"name"`
 		Description *string `db:"description"`
+		Deleted     *bool   `db:"deleted"`
 	}
 )

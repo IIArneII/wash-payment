@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
+	"wash-payment/internal/dal/conversions"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/gocraft/dbr/v2"
@@ -12,86 +15,87 @@ import (
 
 var columns = []string{"id", "email", "name", "role", "organization_id", "version"}
 
-func (r *userRepo) Get(ctx context.Context, userID string) (dbmodels.User, error) {
+func (r *userRepo) Get(ctx context.Context, userID string) (entity.User, error) {
 	op := "failed to get user by ID: %w"
 
 	var dbUser dbmodels.User
 	err := r.db.NewSession(nil).
 		Select(columns...).
 		From(dbmodels.UsersTable).
-		Where("id = ?", userID).
+		Where(dbmodels.ByIDCondition, userID).
 		LoadOneContext(ctx, &dbUser)
 
-	if err == nil {
-		return dbUser, nil
+	if err != nil {
+		if errors.Is(err, dbr.ErrNotFound) {
+			err = app.ErrNotFound
+		}
+		return entity.User{}, fmt.Errorf(op, err)
 	}
 
-	if errors.Is(err, dbr.ErrNotFound) {
-		return dbmodels.User{}, dbmodels.ErrNotFound
-	}
-
-	return dbmodels.User{}, fmt.Errorf(op, err)
+	return conversions.UserFromDB(dbUser), nil
 }
 
-func (r *userRepo) Create(ctx context.Context, user dbmodels.User) (dbmodels.User, error) {
+func (r *userRepo) Create(ctx context.Context, user entity.User) (entity.User, error) {
 	op := "failed to create user: %w"
 
-	var dbUser dbmodels.User
+	dbUser := conversions.UserToDB(user)
+	var dbCreatedUser dbmodels.User
 	err := r.db.NewSession(nil).
 		InsertInto(dbmodels.UsersTable).
 		Columns(columns...).
-		Record(user).
+		Record(dbUser).
 		Returning(columns...).
-		LoadContext(ctx, &dbUser)
+		LoadContext(ctx, &dbCreatedUser)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == dbmodels.PQErrAlreadyExists {
-			err = fmt.Errorf(op, dbmodels.ErrAlreadyExists)
+			err = app.ErrAlreadyExists
 		}
-
-		return dbmodels.User{}, fmt.Errorf(op, err)
+		return entity.User{}, fmt.Errorf(op, err)
 	}
 
-	return dbUser, nil
+	return conversions.UserFromDB(dbCreatedUser), nil
 }
 
-func (r *userRepo) Update(ctx context.Context, userID string, userUpdate dbmodels.UserUpdate) error {
+func (r *userRepo) Update(ctx context.Context, userID string, userUpdate entity.UserUpdate) (entity.User, error) {
 	op := "failed to update user: %w"
+
+	userUpdateDB := conversions.UserUpdateToDB(userUpdate)
 
 	query := r.db.NewSession(nil).
 		Update(dbmodels.UsersTable).
-		Where("id = ?", userID)
+		Where(dbmodels.ByIDCondition, userID)
 
-	if userUpdate.Role != nil {
-		query.Set("role", userUpdate.Role)
+	if userUpdateDB.Role != nil {
+		query.Set("role", userUpdateDB.Role)
 	}
-	if userUpdate.Name != nil {
-		query.Set("name", userUpdate.Name)
+	if userUpdateDB.Name != nil {
+		query.Set("name", userUpdateDB.Name)
 	}
-	if userUpdate.Email != nil {
-		query.Set("email", userUpdate.Email)
+	if userUpdateDB.Email != nil {
+		query.Set("email", userUpdateDB.Email)
 	}
-	if userUpdate.Version != nil {
-		query.Set("version", userUpdate.Version)
-		query.Where("version <= ?", userUpdate.Version)
+	if userUpdateDB.Version != nil {
+		query.Set("version", userUpdateDB.Version)
+		query.Where("version <= ?", userUpdateDB.Version)
 	}
 
 	result, err := query.ExecContext(ctx)
 	if err != nil {
 		if errors.Is(err, dbr.ErrColumnNotSpecified) {
-			err = dbmodels.ErrEmptyUpdate
+			err = app.ErrEmptyUpdate
 		}
 
-		return fmt.Errorf(op, err)
+		return entity.User{}, fmt.Errorf(op, err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf(op, err)
+		return entity.User{}, fmt.Errorf(op, err)
 	}
 	if count == 0 {
-		return dbmodels.ErrNotFound
+		return entity.User{}, fmt.Errorf(op, app.ErrNotFound)
 	}
 
-	return nil
+	return r.Get(ctx, userID)
 }

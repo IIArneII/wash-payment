@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 LABEL stage=gobuilder
 
@@ -21,7 +21,7 @@ RUN apk update --no-cache
 WORKDIR /app
 
 COPY environment/firebase /app/firebase
-COPY internal/migrations internal/migrations
+COPY migrations migrations
 COPY --from=builder /app/wash-payment wash-payment
 
 EXPOSE 8080

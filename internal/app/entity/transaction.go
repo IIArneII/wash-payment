@@ -13,6 +13,12 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
+		Sevice         *string
+	}
+
+	TransactionFilter struct {
+		Filter
+		OrganizationID uuid.UUID
 	}
 
 	Operation string

@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
+	"wash-payment/internal/dal/conversions"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/gocraft/dbr/v2"
@@ -11,64 +14,95 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var columns = []string{"id", "organization_id", "amount", "operation", "created_at"}
+var columns = []string{"id", "organization_id", "amount", "operation", "created_at", "sevice"}
 
-func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (dbmodels.Transaction, error) {
+func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (entity.Transaction, error) {
 	op := "failed to get transaction by ID: %w"
 
 	var dbTransaction dbmodels.Transaction
 	err := r.db.NewSession(nil).
 		Select(columns...).
 		From(dbmodels.TransactionTable).
-		Where("id = ?", transactionID).
+		Where(dbmodels.ByIDCondition, transactionID).
 		LoadOneContext(ctx, &dbTransaction)
 
 	if err != nil {
 		if errors.Is(err, dbr.ErrNotFound) {
-			err = dbmodels.ErrNotFound
+			err = app.ErrNotFound
 		}
 
-		return dbmodels.Transaction{}, fmt.Errorf(op, err)
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 
-	return dbTransaction, nil
+	return conversions.TransactionFromDB(dbTransaction), nil
 }
 
-func (r *transactionRepo) Create(ctx context.Context, transaction dbmodels.Transaction) (dbmodels.Transaction, error) {
+func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error) {
+	op := "failed to get transactions list: %w"
+
+	var count int
+	err := r.db.NewSession(nil).
+		Select(dbmodels.CountSelect).
+		From(dbmodels.TransactionTable).
+		Where("organization_id = ?", filter.OrganizationID).
+		LoadOneContext(ctx, &count)
+
+	if err != nil {
+		return entity.Page[entity.Transaction]{}, fmt.Errorf(op, err)
+	}
+
+	var dbTransaction []dbmodels.Transaction
+	_, err = r.db.NewSession(nil).
+		Select(columns...).
+		From(dbmodels.TransactionTable).
+		Where("organization_id = ?", filter.OrganizationID).
+		OrderDesc("created_at").
+		Offset(filter.Offset()).
+		Limit(filter.Limit()).
+		LoadContext(ctx, &dbTransaction)
+
+	if err != nil {
+		return entity.Page[entity.Transaction]{}, fmt.Errorf(op, err)
+	}
+
+	return entity.NewPage(conversions.TransactionsFromDB(dbTransaction), filter.Filter, count), nil
+}
+
+func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error) {
 	op := "failed to create transaction: %w"
 
 	tx, err := r.db.NewSession(nil).BeginTx(ctx, nil)
 	if err != nil {
-		return dbmodels.Transaction{}, fmt.Errorf(op, err)
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 	defer tx.RollbackUnlessCommitted()
 
 	currentBalance, err := getСurrentBalance(ctx, tx, transaction.OrganizationID)
 	if err != nil {
-		return dbmodels.Transaction{}, err
+		return entity.Transaction{}, err
 	}
 
 	newBalance := getNewBalance(currentBalance, transaction.Amount, transaction.Operation)
 	if newBalance < 0 {
-		return dbmodels.Transaction{}, dbmodels.ErrInsufficientFunds
+		return entity.Transaction{}, app.ErrInsufficientFunds
 	}
 
-	dbTransaction, err := createTransaction(ctx, tx, transaction)
+	dbTransaction, err := createTransaction(ctx, tx, conversions.TransactionToDB(transaction))
 	if err != nil {
-		return dbmodels.Transaction{}, err
+		return entity.Transaction{}, err
 	}
 
 	err = changeOrganizationBalance(ctx, tx, transaction.OrganizationID, newBalance)
 	if err != nil {
-		return dbmodels.Transaction{}, err
+		return entity.Transaction{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return dbmodels.Transaction{}, fmt.Errorf(op, err)
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 
-	return dbTransaction, nil
+	return conversions.TransactionFromDB(dbTransaction), nil
 }
 
 func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.Transaction) (dbmodels.Transaction, error) {
@@ -84,7 +118,7 @@ func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.Tra
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == dbmodels.PQErrAlreadyExists {
-			return dbmodels.Transaction{}, dbmodels.ErrAlreadyExists
+			return dbmodels.Transaction{}, app.ErrAlreadyExists
 		}
 
 		return dbmodels.Transaction{}, fmt.Errorf(op, err)
@@ -111,7 +145,7 @@ func changeOrganizationBalance(ctx context.Context, tx *dbr.Tx, organizationID u
 		return fmt.Errorf(op, err)
 	}
 	if count == 0 {
-		return dbmodels.ErrNotFound
+		return app.ErrNotFound
 	}
 
 	return nil
@@ -129,7 +163,7 @@ func getСurrentBalance(ctx context.Context, tx *dbr.Tx, organizationID uuid.UUI
 
 	if err != nil {
 		if errors.Is(err, dbr.ErrNotFound) {
-			return 0, dbmodels.ErrNotFound
+			return 0, app.ErrNotFound
 		}
 
 		return 0, fmt.Errorf(op, err)
@@ -138,11 +172,11 @@ func getСurrentBalance(ctx context.Context, tx *dbr.Tx, organizationID uuid.UUI
 	return balance, nil
 }
 
-func getNewBalance(balance int64, amount int64, operation dbmodels.Operation) int64 {
+func getNewBalance(balance int64, amount int64, operation entity.Operation) int64 {
 	switch operation {
-	case dbmodels.DepositOperation:
+	case entity.DepositOperation:
 		return balance + amount
-	case dbmodels.DebitOperation:
+	case entity.DebitOperation:
 		return balance - amount
 	default:
 		panic("Unknown transaction operation: " + operation)

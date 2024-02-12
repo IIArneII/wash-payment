@@ -11,15 +11,17 @@ import (
 )
 
 type RabbitService interface {
-	SendMessage(msg interface{}, service entity.Service, routingKey entity.RoutingKey, messageType entity.MessageType) error
+	SendMessage(msg interface{}, service entity.Exchange, routingKey entity.RoutingKey, messageType entity.MessageType) error
 }
 
 type rabbitService struct {
 	l *zap.SugaredLogger
 
 	washPaymentPublisher *rabbitmq.Publisher
-	adminsConsumer       *rabbitmq.Consumer
-	rabbitSvc            app.RabbitService
+	shareConsumer        *rabbitmq.Consumer
+	adminConsumer        *rabbitmq.Consumer
+
+	rabbitSvc app.RabbitService
 }
 
 func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc app.RabbitService) (RabbitService, error) {
@@ -57,7 +59,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		conn,
 		rabbitmq.WithPublisherOptionsLogging,
 		rabbitmq.WithPublisherOptionsExchangeDeclare,
-		rabbitmq.WithPublisherOptionsExchangeName(string(entity.AdminsExchange)),
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.WashBonusExchange)),
 		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
 		rabbitmq.WithPublisherOptionsExchangeDurable,
 	)
@@ -65,15 +67,40 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
-	svc.adminsConsumer, err = rabbitmq.NewConsumer(
+	svc.shareConsumer, err = rabbitmq.NewConsumer(
 		conn,
 		svc.processMessage,
-		string(entity.WashPaymentRoutingKey),
+		string(entity.PaymentUpdateDataQueue),
+
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
-		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
-		rabbitmq.WithConsumerOptionsExchangeKind("fanout"),
+
+		rabbitmq.WithConsumerOptionsExchangeName(string(entity.WashBonusExchange)),
+		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
+
+		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WashPaymentRoutingKey)),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.adminConsumer, err = rabbitmq.NewConsumer(
+		conn,
+		svc.processMessage,
+		string(entity.PaymentDataQueue),
+
+		rabbitmq.WithConsumerOptionsExchangeDeclare,
+
+		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
+		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
+		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.PaymentDataQueue)),
+		rabbitmq.WithConsumerOptionsExchangeDurable,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.SendMessage(nil, entity.WashBonusExchange, entity.WashBonusRoutingKey, entity.DataMessageType)
 	if err != nil {
 		return nil, err
 	}

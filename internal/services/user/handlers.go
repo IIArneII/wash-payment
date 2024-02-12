@@ -4,52 +4,49 @@ import (
 	"context"
 	"errors"
 	"wash-payment/internal/app"
-	"wash-payment/internal/app/conversions"
 	"wash-payment/internal/app/entity"
-	"wash-payment/internal/dal/dbmodels"
 )
 
-func (s *userService) Get(ctx context.Context, userID string) (entity.User, error) {
-	userFromDB, err := s.userRepo.Get(ctx, userID)
+func (s *userService) Get(ctx context.Context, id string) (entity.User, error) {
+	user, err := s.userRepo.Get(ctx, id)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		}
-
 		return entity.User{}, err
 	}
 
-	return conversions.UserFromDB(userFromDB), nil
+	return user, nil
 }
 
-func (s *userService) Create(ctx context.Context, user entity.User) (entity.User, error) {
-	dbUser := conversions.UserToDB(user)
-
-	newUser, err := s.userRepo.Create(ctx, dbUser)
+func (s *userService) Upsert(ctx context.Context, user entity.User) (entity.User, error) {
+	dbUser, err := s.userRepo.Get(ctx, user.ID)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			err = app.ErrAlreadyExists
+		if errors.Is(err, app.ErrNotFound) {
+			newUser, err := s.userRepo.Create(ctx, user)
+			if err != nil {
+				return entity.User{}, err
+			}
+			return newUser, nil
 		}
-
 		return entity.User{}, err
-	}
-
-	return conversions.UserFromDB(newUser), nil
-}
-
-func (s *userService) Update(ctx context.Context, userID string, userUpdate entity.UserUpdate) error {
-	dbUserUpdate := conversions.UserUpdateToDB(userUpdate)
-
-	err := s.userRepo.Update(ctx, userID, dbUserUpdate)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-			err = app.ErrBadRequest
+	} else {
+		if dbUser.Version >= user.Version {
+			return entity.User{}, app.ErrOldVersion
 		}
 
-		return err
-	}
+		userUpdate := userToUpdate(user)
+		updatedUser, err := s.userRepo.Update(ctx, user.ID, userUpdate)
+		if err != nil {
+			return entity.User{}, err
+		}
 
-	return nil
+		return updatedUser, nil
+	}
+}
+
+func userToUpdate(user entity.User) entity.UserUpdate {
+	return entity.UserUpdate{
+		Name:    &user.Name,
+		Email:   &user.Email,
+		Version: &user.Version,
+		Role:    &user.Role,
+	}
 }

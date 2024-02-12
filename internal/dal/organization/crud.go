@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
+	"wash-payment/internal/dal/conversions"
 	"wash-payment/internal/dal/dbmodels"
 
 	"github.com/gocraft/dbr/v2"
@@ -13,7 +16,7 @@ import (
 
 var columns = []string{"id", "name", "display_name", "description", "version", "balance", "deleted"}
 
-func (r *organizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (dbmodels.Organization, error) {
+func (r *organizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (entity.Organization, error) {
 	op := "failed to get organization by ID: %w"
 
 	var dbOrganization dbmodels.Organization
@@ -23,100 +26,109 @@ func (r *organizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (d
 		Where(dbmodels.ByIDCondition, organizationID).
 		LoadOneContext(ctx, &dbOrganization)
 
-	if err == nil {
-		return dbOrganization, nil
+	if err != nil {
+		if errors.Is(err, dbr.ErrNotFound) {
+			err = app.ErrNotFound
+		}
+		return entity.Organization{}, fmt.Errorf(op, err)
 	}
 
-	if errors.Is(err, dbr.ErrNotFound) {
-		return dbmodels.Organization{}, dbmodels.ErrNotFound
-	}
-
-	return dbmodels.Organization{}, fmt.Errorf(op, err)
+	return conversions.OrganizationFromDB(dbOrganization), nil
 }
 
-func (r *organizationRepo) Create(ctx context.Context, organization dbmodels.Organization) (dbmodels.Organization, error) {
+func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error) {
+	op := "failed to get organizations list: %w"
+
+	var count int
+	err := r.db.NewSession(nil).
+		Select(dbmodels.CountSelect).
+		From(dbmodels.OrganizationsTable).
+		LoadOneContext(ctx, &count)
+
+	if err != nil {
+		return entity.Page[entity.Organization]{}, fmt.Errorf(op, err)
+	}
+
+	var dbOrganizations []dbmodels.Organization
+	_, err = r.db.NewSession(nil).
+		Select(columns...).
+		From(dbmodels.OrganizationsTable).
+		OrderAsc("name").
+		Offset(filter.Offset()).
+		Limit(filter.Limit()).
+		LoadContext(ctx, &dbOrganizations)
+
+	if err != nil {
+		return entity.Page[entity.Organization]{}, fmt.Errorf(op, err)
+	}
+
+	return entity.NewPage(conversions.OrganizationsFromDB(dbOrganizations), filter.Filter, count), nil
+}
+
+func (r *organizationRepo) Create(ctx context.Context, organization entity.Organization) (entity.Organization, error) {
 	op := "failed to create organization: %w"
 
-	var dbOrganization dbmodels.Organization
+	dbOrganization := conversions.OrganizationToDB(organization)
+	var dbCreatedOrganization dbmodels.Organization
 	err := r.db.NewSession(nil).
 		InsertInto(dbmodels.OrganizationsTable).
 		Columns(columns...).
-		Record(organization).
+		Record(dbOrganization).
 		Returning(columns...).
-		LoadContext(ctx, &dbOrganization)
+		LoadContext(ctx, &dbCreatedOrganization)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == dbmodels.PQErrAlreadyExists {
-			err = fmt.Errorf(op, dbmodels.ErrAlreadyExists)
+			err = app.ErrAlreadyExists
 		}
-
-		return dbmodels.Organization{}, fmt.Errorf(op, err)
+		return entity.Organization{}, fmt.Errorf(op, err)
 	}
 
-	return dbOrganization, nil
+	return conversions.OrganizationFromDB(dbCreatedOrganization), nil
 }
 
-func (r *organizationRepo) Update(ctx context.Context, organizationID uuid.UUID, organizationUpdate dbmodels.OrganizationUpdate) error {
+func (r *organizationRepo) Update(ctx context.Context, organizationID uuid.UUID, organizationUpdate entity.OrganizationUpdate) (entity.Organization, error) {
 	op := "failed to update organization: %w"
+
+	organizationUpdateDB := conversions.OrganizationUpdateToDB(organizationUpdate)
 
 	query := r.db.NewSession(nil).
 		Update(dbmodels.OrganizationsTable).
 		Where(dbmodels.ByIDCondition, organizationID)
 
-	if organizationUpdate.Name != nil {
-		query.Set("name", organizationUpdate.Name)
+	if organizationUpdateDB.Name != nil {
+		query.Set("name", organizationUpdateDB.Name)
 	}
-	if organizationUpdate.DisplayName != nil {
-		query.Set("display_name", organizationUpdate.DisplayName)
+	if organizationUpdateDB.DisplayName != nil {
+		query.Set("display_name", organizationUpdateDB.DisplayName)
 	}
-	if organizationUpdate.Description != nil {
-		query.Set("description", organizationUpdate.Description)
+	if organizationUpdateDB.Description != nil {
+		query.Set("description", organizationUpdateDB.Description)
 	}
-	if organizationUpdate.Version != nil {
-		query.Set("version", organizationUpdate.Version)
-		query.Where("version <= ?", organizationUpdate.Version)
+	if organizationUpdateDB.Deleted != nil {
+		query.Set("deleted", organizationUpdateDB.Deleted)
+	}
+	if organizationUpdateDB.Version != nil {
+		query.Set("version", organizationUpdateDB.Version)
+		query.Where("version <= ?", organizationUpdateDB.Version)
 	}
 
 	result, err := query.ExecContext(ctx)
 	if err != nil {
 		if errors.Is(err, dbr.ErrColumnNotSpecified) {
-			err = dbmodels.ErrEmptyUpdate
+			err = app.ErrEmptyUpdate
 		}
 
-		return fmt.Errorf(op, err)
+		return entity.Organization{}, fmt.Errorf(op, err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf(op, err)
+		return entity.Organization{}, fmt.Errorf(op, err)
 	}
 	if count == 0 {
-		return dbmodels.ErrNotFound
+		return entity.Organization{}, fmt.Errorf(op, app.ErrNotFound)
 	}
 
-	return nil
-}
-
-func (r *organizationRepo) Delete(ctx context.Context, organizationID uuid.UUID) error {
-	op := "failed to delete organization: %w"
-
-	result, err := r.db.NewSession(nil).
-		Update(dbmodels.OrganizationsTable).
-		Where(dbmodels.ByIDCondition, organizationID).
-		Set("deleted", true).
-		ExecContext(ctx)
-
-	if err != nil {
-		return fmt.Errorf(op, err)
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf(op, err)
-	}
-	if count == 0 {
-		return dbmodels.ErrNotFound
-	}
-
-	return nil
+	return r.Get(ctx, organizationID)
 }

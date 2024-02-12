@@ -28,7 +28,7 @@ func NewDepositParams() DepositParams {
 // DepositParams contains all the bound params for the deposit operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters Deposit
+// swagger:parameters deposit
 type DepositParams struct {
 
 	// HTTP Request Object

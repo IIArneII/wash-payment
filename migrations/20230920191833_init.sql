@@ -13,7 +13,7 @@ create table organizations (
     description  TEXT    NOT NULL  DEFAULT '',
     balance      BIGINT  NOT NULL  DEFAULT 0      CHECK (balance >= 0),
     deleted      BOOLEAN NOT NULL  DEFAULT false,
-    version      BIGINT  NOT NULL  DEFAULT 1      CHECK (version > 0)
+    version      BIGINT  NOT NULL  DEFAULT 1      CHECK (version >= 0)
 );
 
 create table groups (
@@ -22,7 +22,7 @@ create table groups (
     name            TEXT    NOT NULL DEFAULT '',
     description     TEXT    NOT NULL DEFAULT '',
     deleted         BOOLEAN NOT NULL DEFAULT false,
-    version         BIGINT  NOT NULL DEFAULT 1      CHECK (version > 0)
+    version         BIGINT  NOT NULL DEFAULT 1      CHECK (version >= 0)
 );
 
 CREATE TABLE users (
@@ -31,7 +31,7 @@ CREATE TABLE users (
     email           TEXT           NOT NULL  DEFAULT '',
     role            USER_ROLE_ENUM NOT NULL,
     organization_id uuid                                 REFERENCES organizations(id) ON DELETE RESTRICT,
-    version         BIGINT         NOT NULL  DEFAULT 1   CHECK (version > 0)
+    version         BIGINT         NOT NULL  DEFAULT 1   CHECK (version >= 0)
 );
 
 create table transactions (
@@ -39,7 +39,8 @@ create table transactions (
     organization_id uuid                        NOT NULL     REFERENCES organizations(id) ON DELETE RESTRICT,
     amount          BIGINT                      NOT NULL     CHECK (amount > 0),
     operation       TRANSACTIONS_OPERATION_ENUM NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW()
+    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW(),
+    sevice          TEXT
 );
 
 -- +goose StatementEnd

@@ -3,7 +3,6 @@ package conversions
 import (
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
-	rabbitEntity "wash-payment/internal/transport/rabbit/entity"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -61,36 +60,6 @@ func UserUpdateToDB(appUserUpdate entity.UserUpdate) dbmodels.UserUpdate {
 	return userUpdate
 }
 
-func UserFromRabbit(rabbitUser rabbitEntity.User) (entity.User, error) {
-	var orgId *uuid.UUID
-	if rabbitUser.OrganizationID != nil {
-		orgIdfromStr, err := uuid.FromString(*rabbitUser.OrganizationID)
-		if err != nil {
-			return entity.User{}, err
-		}
-		orgId = &orgIdfromStr
-	}
-
-	return entity.User{
-		ID:             rabbitUser.ID,
-		Email:          rabbitUser.Email,
-		Name:           rabbitUser.Name,
-		OrganizationID: orgId,
-		Version:        rabbitUser.Version,
-		Role:           RoleFromRabbit(rabbitUser.Role),
-	}, nil
-}
-
-func UserUpdateFromRabbit(rabbitUser rabbitEntity.User) entity.UserUpdate {
-	role := RoleFromRabbit(rabbitUser.Role)
-	return entity.UserUpdate{
-		Name:    &rabbitUser.Name,
-		Email:   &rabbitUser.Email,
-		Version: &rabbitUser.Version,
-		Role:    &role,
-	}
-}
-
 func RoleFromDB(role dbmodels.Role) entity.Role {
 	switch role {
 	case dbmodels.AdminRole:
@@ -122,6 +91,8 @@ func RoleFromRabbit(role string) entity.Role {
 	case "admin":
 		return entity.AdminRole
 	case "systemManager":
+		return entity.SystemManagerRole
+	case "system_manager":
 		return entity.SystemManagerRole
 	case "noAccess":
 		return entity.NoAccessRole

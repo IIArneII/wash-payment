@@ -18,5 +18,6 @@ type (
 		Version     *int64
 		Name        *string
 		Description *string
+		Deleted     *bool
 	}
 )
