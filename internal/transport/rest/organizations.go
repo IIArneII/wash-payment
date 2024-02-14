@@ -15,6 +15,8 @@ import (
 func (svc *service) initOrganizationsHandlers(api *operations.WashPaymentAPI) {
 	api.OrganizationsDepositHandler = organizations.DepositHandlerFunc(svc.deposit)
 	api.OrganizationsGetHandler = organizations.GetHandlerFunc(svc.get)
+	api.OrganizationsListHandler = organizations.ListHandlerFunc(svc.list)
+	api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(svc.transactions)
 }
 
 func (svc *service) deposit(params organizations.DepositParams, profile *entity.Auth) organizations.DepositResponder {

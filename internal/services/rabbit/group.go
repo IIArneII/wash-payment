@@ -9,7 +9,6 @@ import (
 )
 
 func (s *rabbitService) UpsertGroup(ctx context.Context, rabbitGroup rabbitEntity.Group) error {
-
 	group, err := groupFromRabbit(rabbitGroup)
 	if err != nil {
 		return err

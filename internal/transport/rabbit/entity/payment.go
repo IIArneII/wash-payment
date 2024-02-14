@@ -6,9 +6,15 @@ type Withdrawal struct {
 	Service        string `json:"service"`
 }
 
-type WithdrawalResult struct {
+type WithdrawalSuccess struct {
 	OrganizationId string `json:"organizationId"`
 	Amount         int64  `json:"amount"`
 	Service        string `json:"service"`
-	Status         string `json:"status"`
+}
+
+type WithdrawalFailure struct {
+	OrganizationId string `json:"organizationId"`
+	Amount         int64  `json:"amount"`
+	Service        string `json:"service"`
+	Error          string `json:"errors"`
 }

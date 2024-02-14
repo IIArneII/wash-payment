@@ -4,14 +4,7 @@ import "math"
 
 type (
 	Auth struct {
-		User         User
-		UserMetadata AuthUserMeta
-	}
-
-	AuthUserMeta struct {
-		CreationTimestamp    int64
-		LastLogInTimestamp   int64
-		LastRefreshTimestamp int64
+		User User
 	}
 
 	Filter struct {
@@ -38,10 +31,10 @@ func NewPage[T any](items []T, filter Filter, totalItems int) Page[T] {
 	}
 }
 
-func (f *Filter) Offset() uint64 {
-	return uint64((f.Page - 1) * f.PageSize)
+func (f *Filter) Offset() int {
+	return (f.Page - 1) * f.PageSize
 }
 
-func (f *Filter) Limit() uint64 {
-	return uint64(f.PageSize)
+func (f *Filter) Limit() int {
+	return f.PageSize
 }

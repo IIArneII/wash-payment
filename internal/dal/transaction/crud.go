@@ -57,8 +57,7 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 		From(dbmodels.TransactionTable).
 		Where("organization_id = ?", filter.OrganizationID).
 		OrderDesc("created_at").
-		Offset(filter.Offset()).
-		Limit(filter.Limit()).
+		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
 		LoadContext(ctx, &dbTransaction)
 
 	if err != nil {

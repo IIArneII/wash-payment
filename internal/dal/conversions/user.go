@@ -85,18 +85,3 @@ func RoleToDB(role entity.Role) dbmodels.Role {
 		panic("Unknown app role: " + role)
 	}
 }
-
-func RoleFromRabbit(role string) entity.Role {
-	switch role {
-	case "admin":
-		return entity.AdminRole
-	case "systemManager":
-		return entity.SystemManagerRole
-	case "system_manager":
-		return entity.SystemManagerRole
-	case "noAccess":
-		return entity.NoAccessRole
-	default:
-		panic("Unknown rabbit role: " + role)
-	}
-}

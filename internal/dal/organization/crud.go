@@ -54,8 +54,7 @@ func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationF
 		Select(columns...).
 		From(dbmodels.OrganizationsTable).
 		OrderAsc("name").
-		Offset(filter.Offset()).
-		Limit(filter.Limit()).
+		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
 		LoadContext(ctx, &dbOrganizations)
 
 	if err != nil {

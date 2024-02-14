@@ -3,6 +3,7 @@ package entity
 type Queue string
 
 const (
-	PaymentDataQueue       Queue = "payment_admin_data_queue"        // Получение обновленных данных
-	PaymentUpdateDataQueue Queue = "payment_admin_data_update_queue" //Только для получения БД
+	DataQueue              Queue = "data_queue"               // Получение обновленных данных
+	WithdrawalRequestQueue Queue = "withdrawal_request_queue" // Получение запроса на оплату
+	WithdrawalResultQueue  Queue = "withdrawal_result_queue"  // Ответ со статусом оплаты
 )

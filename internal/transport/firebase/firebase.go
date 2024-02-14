@@ -62,22 +62,16 @@ func (svc *firebaseService) Auth(bearer string) (*entity.Auth, error) {
 	defer cancel()
 
 	idToken := strings.TrimSpace(strings.Replace(bearer, "Bearer", "", 1))
-
 	if idToken == "" {
 		return nil, ErrUnauthorized
 	}
 
-	token, err := svc.auth.VerifyIDToken(context.Background(), idToken)
+	token, err := svc.auth.VerifyIDToken(ctx, idToken)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
 
-	fbUser, err := svc.auth.GetUser(ctx, token.UID)
-	if err != nil {
-		return nil, ErrUnauthorized
-	}
-
-	user, err := svc.userSvc.Get(ctx, fbUser.UID)
+	user, err := svc.userSvc.Get(ctx, token.UID)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
@@ -86,8 +80,9 @@ func (svc *firebaseService) Auth(bearer string) (*entity.Auth, error) {
 		return nil, ErrUnauthorized
 	}
 
-	return &entity.Auth{
-		User:         user,
-		UserMetadata: (entity.AuthUserMeta)(*fbUser.UserMetadata),
-	}, nil
+	authData := &entity.Auth{
+		User: user,
+	}
+
+	return authData, nil
 }
