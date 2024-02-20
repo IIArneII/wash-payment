@@ -17,13 +17,19 @@ func TestCreateTransaction(tt *testing.T) {
 
 	amount := int64(100)
 
-	organization1 := generateOrganization(10000, 1)
-	transaction1 := generateTransaction(entity.DepositOperation, amount, organization1.ID)
-	transaction2 := generateTransaction(entity.DebitOperation, amount, organization1.ID)
-	transaction3 := generateTransaction(entity.DebitOperation, 100000, organization1.ID)
-	transaction4 := generateTransaction(entity.DebitOperation, 100000, uuid.NewV4())
+	organization := generateOrganization(10000, 1)
+	group := generateGroup(organization.ID, 1)
+	user := generateUser(entity.AdminRole, nil, 1)
+	transaction1 := generateTransactionDeposit(amount, organization.ID, user.ID)
+	transaction2 := generateTransactionDebit(amount, organization.ID, group.ID)
+	transaction3 := generateTransactionDebit(100000, organization.ID, group.ID)
+	transaction4 := generateTransactionDebit(100000, uuid.NewV4(), group.ID)
 
-	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization)
+	t.Nil(err)
+	_, err = repositories.GroupRepo.Create(ctx, group)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
 
 	res1, err := repositories.TransactionRepo.Create(ctx, transaction1)
@@ -32,10 +38,10 @@ func TestCreateTransaction(tt *testing.T) {
 	transaction1.CreatedAt = res1.CreatedAt
 	t.DeepEqual(res1, transaction1)
 
-	organization1.Balance += amount
-	orgDB, err := repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	organization.Balance += amount
+	orgDB, err := repositories.OrganizationRepo.Get(ctx, organization.ID)
 	t.Nil(err)
-	t.DeepEqual(orgDB, organization1)
+	t.DeepEqual(orgDB, organization)
 
 	res2, err := repositories.TransactionRepo.Create(ctx, transaction2)
 	t.Nil(err)
@@ -43,10 +49,10 @@ func TestCreateTransaction(tt *testing.T) {
 	transaction2.CreatedAt = res2.CreatedAt
 	t.DeepEqual(res2, transaction2)
 
-	organization1.Balance -= amount
-	orgDB, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	organization.Balance -= amount
+	orgDB, err = repositories.OrganizationRepo.Get(ctx, organization.ID)
 	t.Nil(err)
-	t.DeepEqual(orgDB, organization1)
+	t.DeepEqual(orgDB, organization)
 
 	_, err = repositories.TransactionRepo.Create(ctx, transaction3)
 	t.Err(err, app.ErrInsufficientFunds)
@@ -63,11 +69,14 @@ func TestGetTransaction(tt *testing.T) {
 	err := truncate()
 	t.Nil(err)
 
-	var organization1 = generateOrganization(10000, 1)
-	var transaction1 = generateTransaction(entity.DepositOperation, 100, organization1.ID)
-	var transaction2 = generateTransaction(entity.DepositOperation, 100, organization1.ID)
+	organization := generateOrganization(10000, 1)
+	user := generateUser(entity.AdminRole, nil, 1)
+	var transaction1 = generateTransactionDeposit(100, organization.ID, user.ID)
+	var transaction2 = generateTransactionDeposit(100, organization.ID, user.ID)
 
-	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
 
 	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
@@ -90,14 +99,16 @@ func TestListTransaction(tt *testing.T) {
 
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
-	var transaction1 = generateTransaction(entity.DepositOperation, 100, organization1.ID)
-	var transaction2 = generateTransaction(entity.DepositOperation, 100, organization1.ID)
+	user := generateUser(entity.AdminRole, nil, 1)
+	var transaction1 = generateTransactionDeposit(100, organization1.ID, user.ID)
+	var transaction2 = generateTransactionDeposit(100, organization1.ID, user.ID)
 	transaction2.CreatedAt = transaction2.CreatedAt.Add(time.Second)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
-
 	_, err = repositories.OrganizationRepo.Create(ctx, organization2)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
 
 	_, err = repositories.TransactionRepo.Create(ctx, transaction1)

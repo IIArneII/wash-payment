@@ -83,7 +83,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		Amount:         withdrawal.Amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC(),
-		Sevice:         &withdrawal.Service,
+		Service:        &withdrawal.Service,
 	})
 	if err != nil {
 		return err

@@ -5,6 +5,7 @@ ALTER DATABASE wash_payment SET default_transaction_isolation = 'serializable';
 
 CREATE TYPE USER_ROLE_ENUM              AS ENUM ('system_manager', 'admin', 'no_access');
 CREATE TYPE TRANSACTIONS_OPERATION_ENUM AS ENUM ('deposit', 'debit');
+CREATE TYPE TRANSACTIONS_SERVICE_ENUM   AS ENUM ('bonus', 'sbp');
 
 create table organizations (
     id           uuid                             PRIMARY KEY,
@@ -37,10 +38,13 @@ CREATE TABLE users (
 create table transactions (
     id              uuid                                     PRIMARY KEY,
     organization_id uuid                        NOT NULL     REFERENCES organizations(id) ON DELETE RESTRICT,
+    group_id        uuid                                     REFERENCES groups(id)        ON DELETE RESTRICT,
     amount          BIGINT                      NOT NULL     CHECK (amount > 0),
     operation       TRANSACTIONS_OPERATION_ENUM NOT NULL,
     created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW(),
-    sevice          TEXT
+    service         TRANSACTIONS_SERVICE_ENUM,
+    stations_count  INTEGER                                  CHECK (stations_count > 0),
+    user_id         TEXT                                     REFERENCES users(id)        ON DELETE RESTRICT
 );
 
 -- +goose StatementEnd

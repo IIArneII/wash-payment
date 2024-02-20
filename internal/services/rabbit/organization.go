@@ -22,13 +22,18 @@ func (s *rabbitService) UpsertOrganization(ctx context.Context, rabbitOrganizati
 	return nil
 }
 
-func (s *rabbitService) Withdrawal(ctx context.Context, payment rabbitEntity.Withdrawal) error {
-	groupId, err := uuid.FromString(payment.GroupId)
+func (s *rabbitService) Withdrawal(ctx context.Context, withdrawal rabbitEntity.Withdrawal) error {
+	groupId, err := uuid.FromString(withdrawal.GroupId)
 	if err != nil {
 		return err
 	}
 
-	err = s.services.TransactionService.Withdrawal(ctx, groupId, payment.Amount, payment.Service)
+	err = s.services.TransactionService.Withdrawal(ctx, entity.Withdrawal{
+		GroupId:       groupId,
+		StationsСount: withdrawal.StationsСount,
+		Amount:        withdrawal.Amount,
+		Service:       serviceFromRabbit(withdrawal.Service),
+	})
 	if err != nil {
 		return err
 	}
@@ -50,4 +55,15 @@ func organizationCreateFromRabbit(org rabbitEntity.Organization) (entity.Organiz
 		Version:     org.Version,
 		Deleted:     org.Deleted,
 	}, nil
+}
+
+func serviceFromRabbit(service string) entity.Service {
+	switch service {
+	case "bonus":
+		return entity.BonusService
+	case "sbp":
+		return entity.SbpService
+	default:
+		panic("Unknown rabbit service: " + service)
+	}
 }

@@ -42,14 +42,28 @@ func generateGroup(organizationID uuid.UUID, version int) entity.Group {
 	}
 }
 
-func generateTransaction(operation entity.Operation, amount int64, organizationID uuid.UUID) entity.Transaction {
-	service := randomdata.City()
+func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID string) entity.Transaction {
 	return entity.Transaction{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
 		Amount:         amount,
-		Operation:      operation,
+		Operation:      entity.DepositOperation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
-		Sevice:         &service,
+		UserID:         &userID,
+	}
+}
+
+func generateTransactionDebit(amount int64, organizationID uuid.UUID, groupID uuid.UUID) entity.Transaction {
+	service := entity.BonusService
+	stationsСount := 5
+	return entity.Transaction{
+		ID:             uuid.NewV4(),
+		OrganizationID: organizationID,
+		GroupID:        &groupID,
+		Amount:         amount,
+		Operation:      entity.DebitOperation,
+		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
+		Service:        &service,
+		StationsСount:  &stationsСount,
 	}
 }

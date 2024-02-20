@@ -14,16 +14,16 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
-		Sevice         *Service
-		PostСount      *int
+		Service        *Service
+		StationsСount  *int
 		UserID         *string
 	}
 
 	Withdrawal struct {
-		GroupId   uuid.UUID
-		PostСount int
-		Amount    int64
-		Service   Service
+		GroupId       uuid.UUID
+		StationsСount int
+		Amount        int64
+		Service       Service
 	}
 
 	TransactionFilter struct {

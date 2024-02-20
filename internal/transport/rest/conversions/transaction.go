@@ -7,16 +7,60 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
+func operationToRest(operation entity.Operation) *models.Operation {
+	switch operation {
+	case entity.DepositOperation:
+		o := models.OperationDeposit
+		return &o
+	case entity.DebitOperation:
+		o := models.OperationDebit
+		return &o
+	default:
+		panic("Unknown operation: " + operation)
+	}
+}
+
+func serviceToRest(service *entity.Service) models.Service {
+	if service == nil {
+		return ""
+	}
+	switch *service {
+	case entity.BonusService:
+		return models.ServiceBonus
+	case entity.SbpService:
+		return models.ServiceSbp
+	default:
+		panic("Unknown service: " + *service)
+	}
+}
+
 func TransactionToRest(transaction entity.Transaction) models.Transaction {
 	id := strfmt.UUID(transaction.ID.String())
-	op := (string)(transaction.Operation)
+	organizationID := strfmt.UUID(transaction.OrganizationID.String())
 	createAt := strfmt.DateTime(transaction.CreatedAt)
+
+	var stationsСount *int64 = nil
+	if transaction.StationsСount != nil {
+		sc := int64(*transaction.StationsСount)
+		stationsСount = &sc
+	}
+
+	var groupID *strfmt.UUID = nil
+	if transaction.GroupID != nil {
+		gID := strfmt.UUID(transaction.GroupID.String())
+		groupID = &gID
+	}
+
 	return models.Transaction{
-		ID:        &id,
-		Operation: &op,
-		Sevice:    transaction.Sevice,
-		CreatedAt: &createAt,
-		Amount:    &transaction.Amount,
+		ID:             &id,
+		Operation:      operationToRest(transaction.Operation),
+		OrganizationID: &organizationID,
+		CreatedAt:      &createAt,
+		Amount:         &transaction.Amount,
+		UserID:         transaction.UserID,
+		StationsСount:  stationsСount,
+		GroupID:        groupID,
+		Sevice:         serviceToRest(transaction.Service),
 	}
 }
 
