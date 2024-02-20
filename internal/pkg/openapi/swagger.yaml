@@ -258,14 +258,17 @@ definitions:
         format: uuid
       groupId:
         description: Group that requested payment for using the service
+        x-nullable: true
         type: string
         format: uuid
       stationsСount:
         description: Number of stations in the car wash that requested payment for using of the service
+        x-nullable: true
         type: integer
         minimum: 1
       userId:
         description: The user who credited the organisation's account
+        x-nullable: true
         type: string
       createdAt:
         type: string
@@ -273,6 +276,7 @@ definitions:
       operation:
         $ref: '#/definitions/Operation'
       sevice:
+        x-nullable: true
         $ref: '#/definitions/Service'
       amount:
         description: Amount in kopecks (RUB * 10^2)
