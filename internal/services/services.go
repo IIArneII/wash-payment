@@ -15,6 +15,6 @@ func NewServices(l *zap.SugaredLogger, dal *app.Repositories) *app.Services {
 		UserService:         user.NewService(l, dal.UserRepo),
 		OrganizationService: organization.NewService(l, dal.OrganizationRepo, dal.TransactionRepo),
 		GroupService:        group.NewService(l, dal.GroupRepo),
-		TransactionService:  transaction.NewService(l, dal.OrganizationRepo, dal.TransactionRepo),
+		TransactionService:  transaction.NewService(l, dal.OrganizationRepo, dal.TransactionRepo, dal.GroupRepo),
 	}
 }

@@ -12,8 +12,6 @@ type (
 		List(ctx context.Context, auth entity.Auth, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error)
 		Get(ctx context.Context, auth entity.Auth, organizationID uuid.UUID) (entity.Organization, error)
 		Upsert(ctx context.Context, organization entity.Organization) (entity.Organization, error)
-		Deposit(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, amount int64) error
-		Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64, service_name string) error
 	}
 
 	OrganizationRepo interface {

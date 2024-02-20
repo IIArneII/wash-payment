@@ -179,7 +179,17 @@ definitions:
         format: int32
       message:
         type: string
+
+  Service:
+    description: Service, for the use of which the payment was made
+    type: string
+    enum: ["bonus", "sbp"]
   
+  Operation:
+    description: Type of operation
+    type: string
+    enum: ["deposit", "debit"]
+
   Deposit:
     type: object
     properties:
@@ -243,25 +253,38 @@ definitions:
       id:
         type: string
         format: uuid
+      organizationId:
+        type: string
+        format: uuid
+      groupId:
+        description: Group that requested payment for using the service
+        type: string
+        format: uuid
+      stationsСount:
+        description: Number of stations in the car wash that requested payment for using of the service
+        type: integer
+        minimum: 1
+      userId:
+        description: The user who credited the organisation's account
+        type: string
       createdAt:
         type: string
         format: date-time
       operation:
-        type: string
-        enum: ["deposit", "debit"]
+        $ref: '#/definitions/Operation'
+      sevice:
+        $ref: '#/definitions/Service'
       amount:
         description: Amount in kopecks (RUB * 10^2)
         type: integer
         format: int64
         minimum: 1
-      sevice:
-        type: string
     required:
       - id
+      - organizationId
       - createdAt
       - operation
       - amount
-      - sevice
   
   TransactionPage:
     type: object

@@ -9,13 +9,15 @@ import (
 type transactionService struct {
 	l                *zap.SugaredLogger
 	organizationRepo app.OrganizationRepo
+	groupRepo        app.GroupRepo
 	transactionRepo  app.TransactionRepo
 }
 
-func NewService(l *zap.SugaredLogger, organizationRepo app.OrganizationRepo, transactionRepo app.TransactionRepo) app.TransactionService {
+func NewService(l *zap.SugaredLogger, organizationRepo app.OrganizationRepo, transactionRepo app.TransactionRepo, groupRepo app.GroupRepo) app.TransactionService {
 	return &transactionService{
 		l:                l,
 		transactionRepo:  transactionRepo,
 		organizationRepo: organizationRepo,
+		groupRepo:        groupRepo,
 	}
 }

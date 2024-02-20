@@ -3,7 +3,6 @@ package organization
 import (
 	"context"
 	"errors"
-	"time"
 	"wash-payment/internal/app"
 	"wash-payment/internal/app/entity"
 
@@ -78,59 +77,6 @@ func (s *organizationService) Upsert(ctx context.Context, organization entity.Or
 
 		return updatedOrg, nil
 	}
-}
-
-func (s *organizationService) Deposit(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, amount int64) error {
-	if auth.User.Role != entity.SystemManagerRole {
-		return app.ErrForbidden
-	}
-
-	if amount <= 0 {
-		return app.ErrBadValue
-	}
-
-	_, err := s.organizationRepo.Get(ctx, organizationID)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
-		ID:             uuid.NewV4(),
-		OrganizationID: organizationID,
-		Amount:         amount,
-		Operation:      entity.DepositOperation,
-		CreatedAt:      time.Now().UTC(),
-	})
-	return err
-}
-
-func (s *organizationService) Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64, service_name string) error {
-	if amount <= 0 {
-		return app.ErrBadValue
-	}
-
-	organizationDB, err := s.organizationRepo.Get(ctx, organizationID)
-	if err != nil {
-		return err
-	}
-
-	if organizationDB.Balance-amount < 0 {
-		return app.ErrInsufficientFunds
-	}
-
-	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
-		ID:             uuid.NewV4(),
-		OrganizationID: organizationID,
-		Amount:         amount,
-		Operation:      entity.DebitOperation,
-		CreatedAt:      time.Now().UTC(),
-		Sevice:         &service_name,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func organizationToUpdate(org entity.Organization) entity.OrganizationUpdate {

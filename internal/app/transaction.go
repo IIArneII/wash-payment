@@ -10,6 +10,8 @@ import (
 type (
 	TransactionService interface {
 		List(ctx context.Context, auth entity.Auth, filter entity.TransactionFilter) (entity.Page[entity.Transaction], error)
+		Deposit(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, amount int64) error
+		Withdrawal(ctx context.Context, withdrawal entity.Withdrawal) error
 	}
 
 	TransactionRepo interface {

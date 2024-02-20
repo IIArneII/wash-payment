@@ -22,13 +22,13 @@ func (s *rabbitService) UpsertOrganization(ctx context.Context, rabbitOrganizati
 	return nil
 }
 
-func (s *rabbitService) ProcessWithdrawal(ctx context.Context, payment rabbitEntity.Withdrawal) error {
-	organisationId, err := uuid.FromString(payment.OrganizationId)
+func (s *rabbitService) Withdrawal(ctx context.Context, payment rabbitEntity.Withdrawal) error {
+	groupId, err := uuid.FromString(payment.GroupId)
 	if err != nil {
 		return err
 	}
 
-	err = s.services.OrganizationService.Withdrawal(ctx, organisationId, payment.Amount, payment.Service)
+	err = s.services.TransactionService.Withdrawal(ctx, groupId, payment.Amount, payment.Service)
 	if err != nil {
 		return err
 	}

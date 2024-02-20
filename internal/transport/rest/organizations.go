@@ -29,7 +29,7 @@ func (svc *service) deposit(params organizations.DepositParams, profile *entity.
 		return resp
 	}
 
-	err = svc.services.OrganizationService.Deposit(params.HTTPRequest.Context(), *profile, id, *params.Body.Amount)
+	err = svc.services.TransactionService.Deposit(params.HTTPRequest.Context(), *profile, id, *params.Body.Amount)
 	if err != nil {
 		setAPIError(svc.l, op, err, resp)
 		return resp

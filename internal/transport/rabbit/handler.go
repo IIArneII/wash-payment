@@ -79,21 +79,21 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			return rabbitmq.NackDiscard
 		}
 
-		err = svc.rabbitSvc.ProcessWithdrawal(cxt, msg)
+		err = svc.rabbitSvc.Withdrawal(cxt, msg)
 		if err != nil {
 			svc.l.Info(err)
 			_ = svc.SendMessage(entity.WithdrawalFailure{
-				OrganizationId: msg.OrganizationId,
-				Amount:         msg.Amount,
-				Service:        msg.Service,
-				Error:          err.Error(),
+				GroupId: msg.GroupId,
+				Amount:  msg.Amount,
+				Service: msg.Service,
+				Error:   err.Error(),
 			}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalFailureMessageType)
 			return rabbitmq.NackDiscard
 		}
 		_ = svc.SendMessage(entity.WithdrawalSuccess{
-			OrganizationId: msg.OrganizationId,
-			Amount:         msg.Amount,
-			Service:        msg.Service,
+			GroupId: msg.GroupId,
+			Amount:  msg.Amount,
+			Service: msg.Service,
 		}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalSuccessMessageType)
 
 	default:
