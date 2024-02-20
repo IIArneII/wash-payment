@@ -380,7 +380,8 @@ func init() {
         "groupId": {
           "description": "Group that requested payment for using the service",
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "x-nullable": true
         },
         "id": {
           "type": "string",
@@ -394,16 +395,19 @@ func init() {
           "format": "uuid"
         },
         "sevice": {
+          "x-nullable": true,
           "$ref": "#/definitions/Service"
         },
         "stationsСount": {
           "description": "Number of stations in the car wash that requested payment for using of the service",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-nullable": true
         },
         "userId": {
           "description": "The user who credited the organisation's account",
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         }
       }
     },
@@ -873,7 +877,8 @@ func init() {
         "groupId": {
           "description": "Group that requested payment for using the service",
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "x-nullable": true
         },
         "id": {
           "type": "string",
@@ -887,16 +892,19 @@ func init() {
           "format": "uuid"
         },
         "sevice": {
+          "x-nullable": true,
           "$ref": "#/definitions/Service"
         },
         "stationsСount": {
           "description": "Number of stations in the car wash that requested payment for using of the service",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-nullable": true
         },
         "userId": {
           "description": "The user who credited the organisation's account",
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         }
       }
     },

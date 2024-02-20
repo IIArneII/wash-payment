@@ -33,7 +33,7 @@ type Transaction struct {
 
 	// Group that requested payment for using the service
 	// Format: uuid
-	GroupID strfmt.UUID `json:"groupId,omitempty"`
+	GroupID *strfmt.UUID `json:"groupId,omitempty"`
 
 	// id
 	// Required: true
@@ -54,10 +54,10 @@ type Transaction struct {
 
 	// Number of stations in the car wash that requested payment for using of the service
 	// Minimum: 1
-	StationsСount int64 `json:"stationsСount,omitempty"`
+	StationsСount *int64 `json:"stationsСount,omitempty"`
 
 	// The user who credited the organisation's account
-	UserID string `json:"userId,omitempty"`
+	UserID *string `json:"userId,omitempty"`
 }
 
 // UnmarshalJSON unmarshals this object while disallowing additional properties from JSON
@@ -76,7 +76,7 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 		// Group that requested payment for using the service
 		// Format: uuid
-		GroupID strfmt.UUID `json:"groupId,omitempty"`
+		GroupID *strfmt.UUID `json:"groupId,omitempty"`
 
 		// id
 		// Required: true
@@ -97,10 +97,10 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 		// Number of stations in the car wash that requested payment for using of the service
 		// Minimum: 1
-		StationsСount int64 `json:"stationsСount,omitempty"`
+		StationsСount *int64 `json:"stationsСount,omitempty"`
 
 		// The user who credited the organisation's account
-		UserID string `json:"userId,omitempty"`
+		UserID *string `json:"userId,omitempty"`
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(data))
@@ -273,7 +273,7 @@ func (m *Transaction) validateStationsСount(formats strfmt.Registry) error {
 		return nil
 	}
 
-	if err := validate.MinimumInt("stationsСount", "body", m.StationsСount, 1, false); err != nil {
+	if err := validate.MinimumInt("stationsСount", "body", *m.StationsСount, 1, false); err != nil {
 		return err
 	}
 
