@@ -31,6 +31,10 @@ type Transaction struct {
 	// Format: date-time
 	CreatedAt *strfmt.DateTime `json:"createdAt"`
 
+	// Group that requested payment for using the service
+	// Format: uuid
+	GroupID strfmt.UUID `json:"groupId,omitempty"`
+
 	// id
 	// Required: true
 	// Format: uuid
@@ -38,12 +42,22 @@ type Transaction struct {
 
 	// operation
 	// Required: true
-	// Enum: [deposit debit]
-	Operation *string `json:"operation"`
+	Operation *Operation `json:"operation"`
+
+	// organization Id
+	// Required: true
+	// Format: uuid
+	OrganizationID *strfmt.UUID `json:"organizationId"`
 
 	// sevice
-	// Required: true
-	Sevice *string `json:"sevice"`
+	Sevice Service `json:"sevice,omitempty"`
+
+	// Number of stations in the car wash that requested payment for using of the service
+	// Minimum: 1
+	StationsСount int64 `json:"stationsСount,omitempty"`
+
+	// The user who credited the organisation's account
+	UserID string `json:"userId,omitempty"`
 }
 
 // UnmarshalJSON unmarshals this object while disallowing additional properties from JSON
@@ -60,6 +74,10 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 		// Format: date-time
 		CreatedAt *strfmt.DateTime `json:"createdAt"`
 
+		// Group that requested payment for using the service
+		// Format: uuid
+		GroupID strfmt.UUID `json:"groupId,omitempty"`
+
 		// id
 		// Required: true
 		// Format: uuid
@@ -67,12 +85,22 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 		// operation
 		// Required: true
-		// Enum: [deposit debit]
-		Operation *string `json:"operation"`
+		Operation *Operation `json:"operation"`
+
+		// organization Id
+		// Required: true
+		// Format: uuid
+		OrganizationID *strfmt.UUID `json:"organizationId"`
 
 		// sevice
-		// Required: true
-		Sevice *string `json:"sevice"`
+		Sevice Service `json:"sevice,omitempty"`
+
+		// Number of stations in the car wash that requested payment for using of the service
+		// Minimum: 1
+		StationsСount int64 `json:"stationsСount,omitempty"`
+
+		// The user who credited the organisation's account
+		UserID string `json:"userId,omitempty"`
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(data))
@@ -83,9 +111,13 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 	m.Amount = props.Amount
 	m.CreatedAt = props.CreatedAt
+	m.GroupID = props.GroupID
 	m.ID = props.ID
 	m.Operation = props.Operation
+	m.OrganizationID = props.OrganizationID
 	m.Sevice = props.Sevice
+	m.StationsСount = props.StationsСount
+	m.UserID = props.UserID
 	return nil
 }
 
@@ -101,6 +133,10 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateGroupID(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
@@ -109,7 +145,15 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateOrganizationID(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateSevice(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStationsСount(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -145,6 +189,18 @@ func (m *Transaction) validateCreatedAt(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Transaction) validateGroupID(formats strfmt.Registry) error {
+	if swag.IsZero(m.GroupID) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("groupId", "body", "uuid", m.GroupID.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Transaction) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
@@ -158,43 +214,37 @@ func (m *Transaction) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-var transactionTypeOperationPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["deposit","debit"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		transactionTypeOperationPropEnum = append(transactionTypeOperationPropEnum, v)
-	}
-}
-
-const (
-
-	// TransactionOperationDeposit captures enum value "deposit"
-	TransactionOperationDeposit string = "deposit"
-
-	// TransactionOperationDebit captures enum value "debit"
-	TransactionOperationDebit string = "debit"
-)
-
-// prop value enum
-func (m *Transaction) validateOperationEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, transactionTypeOperationPropEnum, true); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (m *Transaction) validateOperation(formats strfmt.Registry) error {
 
 	if err := validate.Required("operation", "body", m.Operation); err != nil {
 		return err
 	}
 
-	// value enum
-	if err := m.validateOperationEnum("operation", "body", *m.Operation); err != nil {
+	if err := validate.Required("operation", "body", m.Operation); err != nil {
+		return err
+	}
+
+	if m.Operation != nil {
+		if err := m.Operation.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("operation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("operation")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Transaction) validateOrganizationID(formats strfmt.Registry) error {
+
+	if err := validate.Required("organizationId", "body", m.OrganizationID); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("organizationId", "body", "uuid", m.OrganizationID.String(), formats); err != nil {
 		return err
 	}
 
@@ -202,16 +252,84 @@ func (m *Transaction) validateOperation(formats strfmt.Registry) error {
 }
 
 func (m *Transaction) validateSevice(formats strfmt.Registry) error {
+	if swag.IsZero(m.Sevice) { // not required
+		return nil
+	}
 
-	if err := validate.Required("sevice", "body", m.Sevice); err != nil {
+	if err := m.Sevice.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("sevice")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("sevice")
+		}
 		return err
 	}
 
 	return nil
 }
 
-// ContextValidate validates this transaction based on context it is used
+func (m *Transaction) validateStationsСount(formats strfmt.Registry) error {
+	if swag.IsZero(m.StationsСount) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("stationsСount", "body", m.StationsСount, 1, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this transaction based on the context it is used
 func (m *Transaction) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateOperation(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Transaction) contextValidateOperation(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Operation != nil {
+
+		if err := m.Operation.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("operation")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("operation")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Transaction) contextValidateSevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Sevice) { // not required
+		return nil
+	}
+
+	if err := m.Sevice.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("sevice")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("sevice")
+		}
+		return err
+	}
+
 	return nil
 }
 

@@ -281,6 +281,14 @@ func init() {
         }
       }
     },
+    "Operation": {
+      "description": "Type of operation",
+      "type": "string",
+      "enum": [
+        "deposit",
+        "debit"
+      ]
+    },
     "Organization": {
       "type": "object",
       "required": [
@@ -341,14 +349,22 @@ func init() {
         }
       }
     },
+    "Service": {
+      "description": "Service, for the use of which the payment was made",
+      "type": "string",
+      "enum": [
+        "bonus",
+        "sbp"
+      ]
+    },
     "Transaction": {
       "type": "object",
       "required": [
         "id",
+        "organizationId",
         "createdAt",
         "operation",
-        "amount",
-        "sevice"
+        "amount"
       ],
       "properties": {
         "amount": {
@@ -361,18 +377,32 @@ func init() {
           "type": "string",
           "format": "date-time"
         },
+        "groupId": {
+          "description": "Group that requested payment for using the service",
+          "type": "string",
+          "format": "uuid"
+        },
         "id": {
           "type": "string",
           "format": "uuid"
         },
         "operation": {
+          "$ref": "#/definitions/Operation"
+        },
+        "organizationId": {
           "type": "string",
-          "enum": [
-            "deposit",
-            "debit"
-          ]
+          "format": "uuid"
         },
         "sevice": {
+          "$ref": "#/definitions/Service"
+        },
+        "stationsСount": {
+          "description": "Number of stations in the car wash that requested payment for using of the service",
+          "type": "integer",
+          "minimum": 1
+        },
+        "userId": {
+          "description": "The user who credited the organisation's account",
           "type": "string"
         }
       }
@@ -743,6 +773,14 @@ func init() {
         }
       }
     },
+    "Operation": {
+      "description": "Type of operation",
+      "type": "string",
+      "enum": [
+        "deposit",
+        "debit"
+      ]
+    },
     "Organization": {
       "type": "object",
       "required": [
@@ -804,14 +842,22 @@ func init() {
         }
       }
     },
+    "Service": {
+      "description": "Service, for the use of which the payment was made",
+      "type": "string",
+      "enum": [
+        "bonus",
+        "sbp"
+      ]
+    },
     "Transaction": {
       "type": "object",
       "required": [
         "id",
+        "organizationId",
         "createdAt",
         "operation",
-        "amount",
-        "sevice"
+        "amount"
       ],
       "properties": {
         "amount": {
@@ -824,18 +870,32 @@ func init() {
           "type": "string",
           "format": "date-time"
         },
+        "groupId": {
+          "description": "Group that requested payment for using the service",
+          "type": "string",
+          "format": "uuid"
+        },
         "id": {
           "type": "string",
           "format": "uuid"
         },
         "operation": {
+          "$ref": "#/definitions/Operation"
+        },
+        "organizationId": {
           "type": "string",
-          "enum": [
-            "deposit",
-            "debit"
-          ]
+          "format": "uuid"
         },
         "sevice": {
+          "$ref": "#/definitions/Service"
+        },
+        "stationsСount": {
+          "description": "Number of stations in the car wash that requested payment for using of the service",
+          "type": "integer",
+          "minimum": 1
+        },
+        "userId": {
+          "description": "The user who credited the organisation's account",
           "type": "string"
         }
       }
