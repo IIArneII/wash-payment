@@ -31,6 +31,10 @@ type Transaction struct {
 	// Format: date-time
 	CreatedAt *strfmt.DateTime `json:"createdAt"`
 
+	// for date
+	// Format: date
+	ForDate *strfmt.Date `json:"forDate,omitempty"`
+
 	// Group that requested payment for using the service
 	// Format: uuid
 	GroupID *strfmt.UUID `json:"groupId,omitempty"`
@@ -75,6 +79,10 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 		// Format: date-time
 		CreatedAt *strfmt.DateTime `json:"createdAt"`
 
+		// for date
+		// Format: date
+		ForDate *strfmt.Date `json:"forDate,omitempty"`
+
 		// Group that requested payment for using the service
 		// Format: uuid
 		GroupID *strfmt.UUID `json:"groupId,omitempty"`
@@ -113,6 +121,7 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 	m.Amount = props.Amount
 	m.CreatedAt = props.CreatedAt
+	m.ForDate = props.ForDate
 	m.GroupID = props.GroupID
 	m.ID = props.ID
 	m.Operation = props.Operation
@@ -132,6 +141,10 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateCreatedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateForDate(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -185,6 +198,18 @@ func (m *Transaction) validateCreatedAt(formats strfmt.Registry) error {
 	}
 
 	if err := validate.FormatOf("createdAt", "body", "date-time", m.CreatedAt.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Transaction) validateForDate(formats strfmt.Registry) error {
+	if swag.IsZero(m.ForDate) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("forDate", "body", "date", m.ForDate.String(), formats); err != nil {
 		return err
 	}
 

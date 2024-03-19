@@ -36,7 +36,7 @@ func NewSetServicePrices(ctx *middleware.Context, handler SetServicePricesHandle
 
 # Set service prices
 
-set prices for services for the specified organization
+Set prices for services for the specified organization
 */
 type SetServicePrices struct {
 	Context *middleware.Context

@@ -199,7 +199,7 @@ func init() {
             "authKey": []
           }
         ],
-        "description": "set prices for services for the specified organization",
+        "description": "Set prices for services for the specified organization",
         "tags": [
           "Organizations"
         ],
@@ -448,6 +448,11 @@ func init() {
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "forDate": {
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
         },
         "groupId": {
           "description": "Group that requested payment for using the service",
@@ -757,7 +762,7 @@ func init() {
             "authKey": []
           }
         ],
-        "description": "set prices for services for the specified organization",
+        "description": "Set prices for services for the specified organization",
         "tags": [
           "Organizations"
         ],
@@ -1030,6 +1035,11 @@ func init() {
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "forDate": {
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
         },
         "groupId": {
           "description": "Group that requested payment for using the service",
