@@ -58,6 +58,9 @@ func NewWashPaymentAPI(spec *loads.Document) *WashPaymentAPI {
 		OrganizationsListHandler: organizations.ListHandlerFunc(func(params organizations.ListParams, principal *entity.Auth) organizations.ListResponder {
 			return organizations.ListNotImplemented()
 		}),
+		OrganizationsSetServicePricesHandler: organizations.SetServicePricesHandlerFunc(func(params organizations.SetServicePricesParams, principal *entity.Auth) organizations.SetServicePricesResponder {
+			return organizations.SetServicePricesNotImplemented()
+		}),
 		OrganizationsTransactionsHandler: organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *entity.Auth) organizations.TransactionsResponder {
 			return organizations.TransactionsNotImplemented()
 		}),
@@ -119,6 +122,8 @@ type WashPaymentAPI struct {
 	StandardHealthCheckHandler standard.HealthCheckHandler
 	// OrganizationsListHandler sets the operation handler for the list operation
 	OrganizationsListHandler organizations.ListHandler
+	// OrganizationsSetServicePricesHandler sets the operation handler for the set service prices operation
+	OrganizationsSetServicePricesHandler organizations.SetServicePricesHandler
 	// OrganizationsTransactionsHandler sets the operation handler for the transactions operation
 	OrganizationsTransactionsHandler organizations.TransactionsHandler
 
@@ -213,6 +218,9 @@ func (o *WashPaymentAPI) Validate() error {
 	}
 	if o.OrganizationsListHandler == nil {
 		unregistered = append(unregistered, "organizations.ListHandler")
+	}
+	if o.OrganizationsSetServicePricesHandler == nil {
+		unregistered = append(unregistered, "organizations.SetServicePricesHandler")
 	}
 	if o.OrganizationsTransactionsHandler == nil {
 		unregistered = append(unregistered, "organizations.TransactionsHandler")
@@ -332,6 +340,10 @@ func (o *WashPaymentAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/organizations"] = organizations.NewList(o.context, o.OrganizationsListHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/organizations/{id}/service-prices"] = organizations.NewSetServicePrices(o.context, o.OrganizationsSetServicePricesHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

@@ -192,6 +192,54 @@ func init() {
         }
       }
     },
+    "/organizations/{id}/service-prices": {
+      "put": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "set prices for services for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Set service prices",
+        "operationId": "setServicePrices",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServicePrices"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
+    },
     "/organizations/{id}/transactions": {
       "get": {
         "security": [
@@ -296,7 +344,8 @@ func init() {
         "name",
         "displayName",
         "description",
-        "balance"
+        "balance",
+        "servicePrices"
       ],
       "properties": {
         "balance": {
@@ -316,6 +365,9 @@ func init() {
         },
         "name": {
           "type": "string"
+        },
+        "servicePrices": {
+          "$ref": "#/definitions/ServicePrices"
         }
       }
     },
@@ -357,6 +409,24 @@ func init() {
         "bonus",
         "sbp"
       ]
+    },
+    "ServicePrices": {
+      "description": "Prices for services for a specific organization in kopecks (RUB * 10^2)",
+      "type": "object",
+      "required": [
+        "bonus",
+        "sbp"
+      ],
+      "properties": {
+        "bonus": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sbp": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
     },
     "Transaction": {
       "type": "object",
@@ -680,6 +750,66 @@ func init() {
         }
       }
     },
+    "/organizations/{id}/service-prices": {
+      "put": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "set prices for services for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Set service prices",
+        "operationId": "setServicePrices",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServicePrices"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/organizations/{id}/transactions": {
       "get": {
         "security": [
@@ -793,7 +923,8 @@ func init() {
         "name",
         "displayName",
         "description",
-        "balance"
+        "balance",
+        "servicePrices"
       ],
       "properties": {
         "balance": {
@@ -814,6 +945,9 @@ func init() {
         },
         "name": {
           "type": "string"
+        },
+        "servicePrices": {
+          "$ref": "#/definitions/ServicePrices"
         }
       }
     },
@@ -855,6 +989,26 @@ func init() {
         "bonus",
         "sbp"
       ]
+    },
+    "ServicePrices": {
+      "description": "Prices for services for a specific organization in kopecks (RUB * 10^2)",
+      "type": "object",
+      "required": [
+        "bonus",
+        "sbp"
+      ],
+      "properties": {
+        "bonus": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "sbp": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        }
+      }
     },
     "Transaction": {
       "type": "object",

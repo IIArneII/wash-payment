@@ -42,6 +42,10 @@ type Organization struct {
 	// name
 	// Required: true
 	Name *string `json:"name"`
+
+	// service prices
+	// Required: true
+	ServicePrices *ServicePrices `json:"servicePrices"`
 }
 
 // UnmarshalJSON unmarshals this object while disallowing additional properties from JSON
@@ -69,6 +73,10 @@ func (m *Organization) UnmarshalJSON(data []byte) error {
 		// name
 		// Required: true
 		Name *string `json:"name"`
+
+		// service prices
+		// Required: true
+		ServicePrices *ServicePrices `json:"servicePrices"`
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(data))
@@ -82,6 +90,7 @@ func (m *Organization) UnmarshalJSON(data []byte) error {
 	m.DisplayName = props.DisplayName
 	m.ID = props.ID
 	m.Name = props.Name
+	m.ServicePrices = props.ServicePrices
 	return nil
 }
 
@@ -106,6 +115,10 @@ func (m *Organization) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServicePrices(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -168,8 +181,54 @@ func (m *Organization) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this organization based on context it is used
+func (m *Organization) validateServicePrices(formats strfmt.Registry) error {
+
+	if err := validate.Required("servicePrices", "body", m.ServicePrices); err != nil {
+		return err
+	}
+
+	if m.ServicePrices != nil {
+		if err := m.ServicePrices.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("servicePrices")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("servicePrices")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this organization based on the context it is used
 func (m *Organization) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateServicePrices(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Organization) contextValidateServicePrices(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ServicePrices != nil {
+
+		if err := m.ServicePrices.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("servicePrices")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("servicePrices")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
