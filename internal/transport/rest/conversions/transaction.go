@@ -20,17 +20,16 @@ func operationToRest(operation entity.Operation) *models.Operation {
 	}
 }
 
-func serviceToRest(service *entity.Service) models.Service {
-	if service == nil {
-		return ""
-	}
-	switch *service {
+func serviceToRest(service entity.Service) models.Service {
+	switch service {
+	case entity.PaymentService:
+		return models.ServicePayment
 	case entity.BonusService:
 		return models.ServiceBonus
 	case entity.SbpService:
 		return models.ServiceSbp
 	default:
-		panic("Unknown service: " + *service)
+		panic("Unknown service: " + service)
 	}
 }
 

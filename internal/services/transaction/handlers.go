@@ -53,6 +53,7 @@ func (s *transactionService) Deposit(ctx context.Context, auth entity.Auth, orga
 		Amount:         amount,
 		Operation:      entity.DepositOperation,
 		CreatedAt:      time.Now().UTC(),
+		Service:        entity.PaymentService,
 	})
 	return err
 }
@@ -83,7 +84,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		Amount:         withdrawal.Amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC(),
-		Service:        &withdrawal.Service,
+		Service:        withdrawal.Service,
 	})
 	if err != nil {
 		return err

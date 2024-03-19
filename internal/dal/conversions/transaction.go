@@ -18,19 +18,16 @@ func TransactionOperationFromDb(operation dbmodels.Operation) entity.Operation {
 	}
 }
 
-func TransactionServiceFromDb(service *dbmodels.Service) *entity.Service {
-	if service == nil {
-		return nil
-	}
-	switch *service {
+func TransactionServiceFromDb(service dbmodels.Service) entity.Service {
+	switch service {
+	case dbmodels.PaymentService:
+		return entity.PaymentService
 	case dbmodels.BonusService:
-		o := entity.BonusService
-		return &o
+		return entity.BonusService
 	case dbmodels.SbpService:
-		o := entity.SbpService
-		return &o
+		return entity.SbpService
 	default:
-		panic("Unknown db service: " + *service)
+		panic("Unknown db service: " + service)
 	}
 }
 
@@ -45,19 +42,16 @@ func TransactionOperationToDb(operation entity.Operation) dbmodels.Operation {
 	}
 }
 
-func TransactionServiceToDb(operation *entity.Service) *dbmodels.Service {
-	if operation == nil {
-		return nil
-	}
-	switch *operation {
+func TransactionServiceToDb(operation entity.Service) dbmodels.Service {
+	switch operation {
+	case entity.PaymentService:
+		return dbmodels.PaymentService
 	case entity.BonusService:
-		o := dbmodels.BonusService
-		return &o
+		return dbmodels.BonusService
 	case entity.SbpService:
-		o := dbmodels.SbpService
-		return &o
+		return dbmodels.SbpService
 	default:
-		panic("Unknown app service: " + *operation)
+		panic("Unknown app service: " + operation)
 	}
 }
 

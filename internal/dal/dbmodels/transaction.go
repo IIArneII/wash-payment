@@ -14,7 +14,7 @@ type (
 		Amount         int64         `db:"amount"`
 		Operation      Operation     `db:"operation"`
 		CreatedAt      time.Time     `db:"created_at"`
-		Service        *Service      `db:"service"`
+		Service        Service       `db:"service"`
 		StationsСount  *int          `db:"stations_count"`
 		UserID         *string       `db:"user_id"`
 	}
@@ -27,6 +27,7 @@ const (
 	DepositOperation Operation = "deposit"
 	DebitOperation   Operation = "debit"
 
-	BonusService Service = "bonus"
-	SbpService   Service = "sbp"
+	PaymentService Service = "payment"
+	BonusService   Service = "bonus"
+	SbpService     Service = "sbp"
 )

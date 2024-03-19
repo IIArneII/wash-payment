@@ -183,7 +183,7 @@ definitions:
   Service:
     description: Service, for the use of which the payment was made
     type: string
-    enum: ["bonus", "sbp"]
+    enum: ["payment", "bonus", "sbp"]
   
   Operation:
     description: Type of operation
@@ -276,7 +276,6 @@ definitions:
       operation:
         $ref: '#/definitions/Operation'
       sevice:
-        x-nullable: true
         $ref: '#/definitions/Service'
       amount:
         description: Amount in kopecks (RUB * 10^2)
@@ -288,6 +287,7 @@ definitions:
       - organizationId
       - createdAt
       - operation
+      - sevice
       - amount
   
   TransactionPage:

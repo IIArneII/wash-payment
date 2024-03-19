@@ -8,7 +8,7 @@ const (
 	GroupMessageType        MessageType = "admin_service/server_group"
 	DataMessageType         MessageType = "admin_service/data"
 
-	WithdrawalRequestMessageType MessageType = "admin_service/withdraw_request"
-	WithdrawalSuccessMessageType MessageType = "admin_service/withdraw_success"
-	WithdrawalFailureMessageType MessageType = "admin_service/withdraw_failure"
+	WithdrawalRequestMessageType MessageType = "payment_service/withdraw_request"
+	WithdrawalSuccessMessageType MessageType = "payment_service/withdraw_success"
+	WithdrawalFailureMessageType MessageType = "payment_service/withdraw_failure"
 )

@@ -14,7 +14,7 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
-		Service        *Service
+		Service        Service
 		StationsСount  *int
 		UserID         *string
 	}
@@ -39,6 +39,7 @@ const (
 	DepositOperation Operation = "deposit"
 	DebitOperation   Operation = "debit"
 
-	BonusService Service = "bonus"
-	SbpService   Service = "sbp"
+	PaymentService Service = "payment"
+	BonusService   Service = "bonus"
+	SbpService     Service = "sbp"
 )
