@@ -119,7 +119,7 @@ paths:
         - Organizations
       operationId: setServicePrices
       summary: Set service prices
-      description: set prices for services for the specified organization
+      description: Set prices for services for the specified organization
       security:
         - authKey: []
       parameters:
@@ -320,6 +320,10 @@ definitions:
       createdAt:
         type: string
         format: date-time
+      forDate:
+        x-nullable: true
+        type: string
+        format: date
       operation:
         $ref: '#/definitions/Operation'
       sevice:
