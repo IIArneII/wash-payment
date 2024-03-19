@@ -50,7 +50,8 @@ type Transaction struct {
 	OrganizationID *strfmt.UUID `json:"organizationId"`
 
 	// sevice
-	Sevice Service `json:"sevice,omitempty"`
+	// Required: true
+	Sevice *Service `json:"sevice"`
 
 	// Number of stations in the car wash that requested payment for using of the service
 	// Minimum: 1
@@ -93,7 +94,8 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 		OrganizationID *strfmt.UUID `json:"organizationId"`
 
 		// sevice
-		Sevice Service `json:"sevice,omitempty"`
+		// Required: true
+		Sevice *Service `json:"sevice"`
 
 		// Number of stations in the car wash that requested payment for using of the service
 		// Minimum: 1
@@ -252,17 +254,24 @@ func (m *Transaction) validateOrganizationID(formats strfmt.Registry) error {
 }
 
 func (m *Transaction) validateSevice(formats strfmt.Registry) error {
-	if swag.IsZero(m.Sevice) { // not required
-		return nil
+
+	if err := validate.Required("sevice", "body", m.Sevice); err != nil {
+		return err
 	}
 
-	if err := m.Sevice.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("sevice")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
-			return ce.ValidateName("sevice")
-		}
+	if err := validate.Required("sevice", "body", m.Sevice); err != nil {
 		return err
+	}
+
+	if m.Sevice != nil {
+		if err := m.Sevice.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sevice")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("sevice")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -317,17 +326,16 @@ func (m *Transaction) contextValidateOperation(ctx context.Context, formats strf
 
 func (m *Transaction) contextValidateSevice(ctx context.Context, formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Sevice) { // not required
-		return nil
-	}
+	if m.Sevice != nil {
 
-	if err := m.Sevice.ContextValidate(ctx, formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("sevice")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
-			return ce.ValidateName("sevice")
+		if err := m.Sevice.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("sevice")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("sevice")
+			}
+			return err
 		}
-		return err
 	}
 
 	return nil

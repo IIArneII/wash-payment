@@ -30,6 +30,9 @@ func (m Service) Pointer() *Service {
 
 const (
 
+	// ServicePayment captures enum value "payment"
+	ServicePayment Service = "payment"
+
 	// ServiceBonus captures enum value "bonus"
 	ServiceBonus Service = "bonus"
 
@@ -42,7 +45,7 @@ var serviceEnum []interface{}
 
 func init() {
 	var res []Service
-	if err := json.Unmarshal([]byte(`["bonus","sbp"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["payment","bonus","sbp"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {

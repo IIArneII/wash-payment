@@ -353,6 +353,7 @@ func init() {
       "description": "Service, for the use of which the payment was made",
       "type": "string",
       "enum": [
+        "payment",
         "bonus",
         "sbp"
       ]
@@ -364,6 +365,7 @@ func init() {
         "organizationId",
         "createdAt",
         "operation",
+        "sevice",
         "amount"
       ],
       "properties": {
@@ -395,7 +397,6 @@ func init() {
           "format": "uuid"
         },
         "sevice": {
-          "x-nullable": true,
           "$ref": "#/definitions/Service"
         },
         "stationsСount": {
@@ -850,6 +851,7 @@ func init() {
       "description": "Service, for the use of which the payment was made",
       "type": "string",
       "enum": [
+        "payment",
         "bonus",
         "sbp"
       ]
@@ -861,6 +863,7 @@ func init() {
         "organizationId",
         "createdAt",
         "operation",
+        "sevice",
         "amount"
       ],
       "properties": {
@@ -892,7 +895,6 @@ func init() {
           "format": "uuid"
         },
         "sevice": {
-          "x-nullable": true,
           "$ref": "#/definitions/Service"
         },
         "stationsСount": {
