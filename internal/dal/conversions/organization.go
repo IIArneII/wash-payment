@@ -14,6 +14,10 @@ func OrganizationFromDB(org dbmodels.Organization) entity.Organization {
 		Version:     org.Version,
 		Balance:     org.Balance,
 		Deleted:     org.Deleted,
+		ServicePrices: entity.ServicePrices{
+			Bonus: org.ServicePricesBonus,
+			Sbp:   org.ServicePricesSbp,
+		},
 	}
 }
 

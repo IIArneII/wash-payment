@@ -112,6 +112,34 @@ paths:
         403: {$ref: '#/responses/Forbidden'}
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
+  
+  /organizations/{id}/service-prices:
+    put:
+      tags:
+        - Organizations
+      operationId: setServicePrices
+      summary: Set service prices
+      description: set prices for services for the specified organization
+      security:
+        - authKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uuid
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/ServicePrices"
+      responses:
+        204:
+          description: OK
+        400: {$ref: '#/responses/BadRequest'}
+        403: {$ref: '#/responses/Forbidden'}
+        404: {$ref: '#/responses/NotFound'}
+        default: {$ref: '#/responses/InternalError'}
+
 
   /organizations/{id}/transactions:
     get:
@@ -199,8 +227,24 @@ definitions:
         format: int64
         minimum: 1
     required:
-    - amount
+      - amount
   
+  ServicePrices:
+    type: object
+    description: Prices for services for a specific organization in kopecks (RUB * 10^2)
+    properties:
+      bonus:
+        type: integer
+        format: int64
+        minimum: 0
+      sbp:
+        type: integer
+        format: int64
+        minimum: 0
+    required:
+      - bonus
+      - sbp
+
   Organization:
     type: object
     properties:
@@ -218,12 +262,15 @@ definitions:
         type: integer
         format: int64
         minimum: 0
+      servicePrices:
+        $ref: "#/definitions/ServicePrices"
     required:
-    - id
-    - name
-    - displayName
-    - description
-    - balance
+      - id
+      - name
+      - displayName
+      - description
+      - balance
+      - servicePrices
   
   OrganizationPage:
     type: object

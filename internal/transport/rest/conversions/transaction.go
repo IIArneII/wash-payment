@@ -37,6 +37,7 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 	id := strfmt.UUID(transaction.ID.String())
 	organizationID := strfmt.UUID(transaction.OrganizationID.String())
 	createAt := strfmt.DateTime(transaction.CreatedAt)
+	service := serviceToRest(transaction.Service)
 
 	var stationsСount *int64 = nil
 	if transaction.StationsСount != nil {
@@ -56,10 +57,10 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		OrganizationID: &organizationID,
 		CreatedAt:      &createAt,
 		Amount:         &transaction.Amount,
+		Sevice:         &service,
 		UserID:         transaction.UserID,
 		StationsСount:  stationsСount,
 		GroupID:        groupID,
-		Sevice:         serviceToRest(transaction.Service),
 	}
 }
 
