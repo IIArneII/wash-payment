@@ -23,7 +23,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		err := json.Unmarshal(d.Body, &msg)
 
 		if err != nil {
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -33,7 +33,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			if errors.Is(err, app.ErrOldVersion) {
 				return rabbitmq.NackDiscard
 			}
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -41,7 +41,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		var msg entity.Group
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -50,7 +50,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			if errors.Is(err, app.ErrOldVersion) {
 				return rabbitmq.NackDiscard
 			}
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -58,7 +58,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		var msg entity.User
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -67,7 +67,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			if errors.Is(err, app.ErrOldVersion) {
 				return rabbitmq.NackDiscard
 			}
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackRequeue
 		}
 
@@ -75,7 +75,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		var msg entity.Withdrawal
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
-			svc.l.Info(err)
+			svc.l.Error(err)
 			return rabbitmq.NackDiscard
 		}
 
@@ -84,7 +84,6 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			svc.l.Info(err)
 			_ = svc.SendMessage(entity.WithdrawalFailure{
 				GroupId: msg.GroupId,
-				Amount:  msg.Amount,
 				Service: msg.Service,
 				Error:   err.Error(),
 			}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalFailureMessageType)
@@ -92,7 +91,6 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		}
 		_ = svc.SendMessage(entity.WithdrawalSuccess{
 			GroupId: msg.GroupId,
-			Amount:  msg.Amount,
 			Service: msg.Service,
 		}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalSuccessMessageType)
 

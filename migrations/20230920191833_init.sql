@@ -19,8 +19,8 @@ create table organizations (
 
 create table service_prices (
     organization_id uuid                      NOT NULL             REFERENCES organizations(id),
-    service         TRANSACTIONS_SERVICE_ENUM NOT NULL             REFERENCES services(name),
-    price           BIGINT                    NOT NULL DEFAULT 100 CHECK (price >= 0),
+    service         TRANSACTIONS_SERVICE_ENUM NOT NULL,
+    price           BIGINT                    NOT NULL DEFAULT 0 CHECK (price >= 0),
     PRIMARY KEY (organization_id, service)
 );
 
@@ -49,6 +49,7 @@ create table transactions (
     amount          BIGINT                      NOT NULL     CHECK (amount > 0),
     operation       TRANSACTIONS_OPERATION_ENUM NOT NULL,
     created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW(),
+    for_date        DATE,
     service         TRANSACTIONS_SERVICE_ENUM   NOT NULL,
     stations_count  INTEGER                                  CHECK (stations_count > 0),
     user_id         TEXT                                     REFERENCES users(id)         ON DELETE RESTRICT

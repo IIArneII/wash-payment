@@ -14,6 +14,7 @@ type (
 		Amount         int64         `db:"amount"`
 		Operation      Operation     `db:"operation"`
 		CreatedAt      time.Time     `db:"created_at"`
+		ForDate        *time.Time    `db:"for_date"`
 		Service        Service       `db:"service"`
 		StationsСount  *int          `db:"stations_count"`
 		UserID         *string       `db:"user_id"`

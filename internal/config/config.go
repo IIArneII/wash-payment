@@ -66,5 +66,7 @@ func (c DBConfig) DSN() string {
 }
 
 func (c RabbitMQConfig) DSN() string {
-	return fmt.Sprintf("amqps://%s:%s@%s:%d/", c.User, c.Password, c.Host, c.Port)
+	f := fmt.Sprintf("amqps://%s:%s@%s:%d/", c.User, c.Password, c.Host, c.Port)
+	fmt.Println(f)
+	return f
 }

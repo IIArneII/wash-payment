@@ -12,6 +12,7 @@ type (
 		List(ctx context.Context, auth entity.Auth, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error)
 		Get(ctx context.Context, auth entity.Auth, organizationID uuid.UUID) (entity.Organization, error)
 		Upsert(ctx context.Context, organization entity.Organization) (entity.Organization, error)
+		SetServicePrices(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, servicePrices entity.ServicePrices) error
 	}
 
 	OrganizationRepo interface {

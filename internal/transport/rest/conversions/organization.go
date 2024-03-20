@@ -7,14 +7,30 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
+func ServicePricesToRest(appServicePrices entity.ServicePrices) models.ServicePrices {
+	return models.ServicePrices{
+		Bonus: &appServicePrices.Bonus,
+		Sbp:   &appServicePrices.Sbp,
+	}
+}
+
+func ServicePricesFromRest(restServicePrices models.ServicePrices) entity.ServicePrices {
+	return entity.ServicePrices{
+		Bonus: *restServicePrices.Bonus,
+		Sbp:   *restServicePrices.Sbp,
+	}
+}
+
 func OrganizationToRest(appOrganization entity.Organization) models.Organization {
 	id := strfmt.UUID(appOrganization.ID.String())
+	sp := ServicePricesToRest(appOrganization.ServicePrices)
 	return models.Organization{
-		ID:          &id,
-		Name:        &appOrganization.Name,
-		DisplayName: &appOrganization.DisplayName,
-		Description: &appOrganization.Description,
-		Balance:     &appOrganization.Balance,
+		ID:            &id,
+		Name:          &appOrganization.Name,
+		DisplayName:   &appOrganization.DisplayName,
+		Description:   &appOrganization.Description,
+		Balance:       &appOrganization.Balance,
+		ServicePrices: &sp,
 	}
 }
 

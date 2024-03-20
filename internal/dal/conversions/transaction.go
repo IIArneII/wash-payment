@@ -1,13 +1,14 @@
 package conversions
 
 import (
+	"time"
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
 	uuid "github.com/satori/go.uuid"
 )
 
-func TransactionOperationFromDb(operation dbmodels.Operation) entity.Operation {
+func OperationFromDb(operation dbmodels.Operation) entity.Operation {
 	switch operation {
 	case dbmodels.DepositOperation:
 		return entity.DepositOperation
@@ -18,20 +19,7 @@ func TransactionOperationFromDb(operation dbmodels.Operation) entity.Operation {
 	}
 }
 
-func TransactionServiceFromDb(service dbmodels.Service) entity.Service {
-	switch service {
-	case dbmodels.PaymentService:
-		return entity.PaymentService
-	case dbmodels.BonusService:
-		return entity.BonusService
-	case dbmodels.SbpService:
-		return entity.SbpService
-	default:
-		panic("Unknown db service: " + service)
-	}
-}
-
-func TransactionOperationToDb(operation entity.Operation) dbmodels.Operation {
+func OperationToDb(operation entity.Operation) dbmodels.Operation {
 	switch operation {
 	case entity.DepositOperation:
 		return dbmodels.DepositOperation
@@ -39,19 +27,6 @@ func TransactionOperationToDb(operation entity.Operation) dbmodels.Operation {
 		return dbmodels.DebitOperation
 	default:
 		panic("Unknown app operation: " + operation)
-	}
-}
-
-func TransactionServiceToDb(operation entity.Service) dbmodels.Service {
-	switch operation {
-	case entity.PaymentService:
-		return dbmodels.PaymentService
-	case entity.BonusService:
-		return dbmodels.BonusService
-	case entity.SbpService:
-		return dbmodels.SbpService
-	default:
-		panic("Unknown app service: " + operation)
 	}
 }
 
@@ -67,8 +42,9 @@ func TransactionFromDB(transaction dbmodels.Transaction) entity.Transaction {
 		GroupID:        groupID,
 		Amount:         transaction.Amount,
 		CreatedAt:      transaction.CreatedAt,
-		Service:        TransactionServiceFromDb(transaction.Service),
-		Operation:      TransactionOperationFromDb(transaction.Operation),
+		ForDate:        transaction.ForDate,
+		Service:        ServiceFromDb(transaction.Service),
+		Operation:      OperationFromDb(transaction.Operation),
 		StationsСount:  transaction.StationsСount,
 		UserID:         transaction.UserID,
 	}
@@ -88,6 +64,11 @@ func TransactionToDB(transaction entity.Transaction) dbmodels.Transaction {
 		groupID.UUID = *transaction.GroupID
 		groupID.Valid = true
 	}
+	var forDate *time.Time = nil
+	if transaction.ForDate != nil {
+		fd := transaction.ForDate.Truncate(24 * time.Hour)
+		forDate = &fd
+	}
 
 	return dbmodels.Transaction{
 		ID:             transaction.ID,
@@ -95,8 +76,9 @@ func TransactionToDB(transaction entity.Transaction) dbmodels.Transaction {
 		GroupID:        groupID,
 		Amount:         transaction.Amount,
 		CreatedAt:      transaction.CreatedAt,
-		Service:        TransactionServiceToDb(transaction.Service),
-		Operation:      TransactionOperationToDb(transaction.Operation),
+		ForDate:        forDate,
+		Service:        ServiceToDb(transaction.Service),
+		Operation:      OperationToDb(transaction.Operation),
 		StationsСount:  transaction.StationsСount,
 		UserID:         transaction.UserID,
 	}

@@ -48,6 +48,33 @@ func (s *organizationService) List(ctx context.Context, auth entity.Auth, filter
 	return orgs, nil
 }
 
+func (s *organizationService) SetServicePrices(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, servicePrices entity.ServicePrices) error {
+	if auth.User.Role != entity.SystemManagerRole {
+		return app.ErrForbidden
+	}
+
+	if servicePrices.Bonus < 0 || servicePrices.Sbp < 0 {
+		return app.ErrBadValue
+	}
+
+	_, err := s.organizationRepo.Get(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.servicePriceRepo.Update(ctx, organizationID, entity.BonusService, servicePrices.Bonus)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.servicePriceRepo.Update(ctx, organizationID, entity.SbpService, servicePrices.Sbp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *organizationService) Upsert(ctx context.Context, organization entity.Organization) (entity.Organization, error) {
 	if organization.ID == uuid.Nil {
 		return entity.Organization{}, app.ErrNotFound
@@ -61,6 +88,12 @@ func (s *organizationService) Upsert(ctx context.Context, organization entity.Or
 			if err != nil {
 				return entity.Organization{}, err
 			}
+
+			err = s.servicePricesForCreatedOrganization(ctx, newOrganization.ID)
+			if err != nil {
+				return entity.Organization{}, err
+			}
+
 			return newOrganization, nil
 		}
 		return entity.Organization{}, err
@@ -77,6 +110,28 @@ func (s *organizationService) Upsert(ctx context.Context, organization entity.Or
 
 		return updatedOrg, nil
 	}
+}
+
+func (s *organizationService) servicePricesForCreatedOrganization(ctx context.Context, organizationID uuid.UUID) error {
+	_, err := s.servicePriceRepo.Create(ctx, entity.ServicePrice{
+		OrganizationID: organizationID,
+		Service:        entity.BonusService,
+		Price:          0,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.servicePriceRepo.Create(ctx, entity.ServicePrice{
+		OrganizationID: organizationID,
+		Service:        entity.SbpService,
+		Price:          0,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func organizationToUpdate(org entity.Organization) entity.OrganizationUpdate {

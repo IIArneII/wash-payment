@@ -28,6 +28,18 @@ func generateOrganization(balance int64, version int) entity.Organization {
 		Deleted:     false,
 		Version:     int64(version),
 		Balance:     balance,
+		ServicePrices: entity.ServicePrices{
+			Bonus: 0,
+			Sbp:   0,
+		},
+	}
+}
+
+func generateServicePrice(organizationID uuid.UUID, service entity.Service, price int64) entity.ServicePrice {
+	return entity.ServicePrice{
+		OrganizationID: organizationID,
+		Service:        service,
+		Price:          price,
 	}
 }
 
@@ -50,12 +62,13 @@ func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID s
 		Operation:      entity.DepositOperation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
 		UserID:         &userID,
+		Service:        entity.PaymentService,
 	}
 }
 
 func generateTransactionDebit(amount int64, organizationID uuid.UUID, groupID uuid.UUID) entity.Transaction {
-	service := entity.BonusService
 	stationsСount := 5
+	forDate := time.Now().UTC().Truncate(24 * time.Hour)
 	return entity.Transaction{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
@@ -63,7 +76,8 @@ func generateTransactionDebit(amount int64, organizationID uuid.UUID, groupID uu
 		Amount:         amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
-		Service:        &service,
+		ForDate:        &forDate,
+		Service:        entity.BonusService,
 		StationsСount:  &stationsСount,
 	}
 }

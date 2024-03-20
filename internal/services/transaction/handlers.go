@@ -59,7 +59,7 @@ func (s *transactionService) Deposit(ctx context.Context, auth entity.Auth, orga
 }
 
 func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.Withdrawal) error {
-	if withdrawal.Amount <= 0 {
+	if withdrawal.StationsСount <= 0 {
 		return app.ErrBadValue
 	}
 
@@ -73,22 +73,39 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		return err
 	}
 
-	if withdrawal.Amount > organizationDB.Balance {
+	amount := int64(withdrawal.StationsСount) * getPrice(organizationDB.ServicePrices, withdrawal.Service)
+
+	if amount > organizationDB.Balance {
 		return app.ErrInsufficientFunds
 	}
+
+	forDate := withdrawal.ForDate.Truncate(24 * time.Hour)
 
 	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
 		ID:             uuid.NewV4(),
 		OrganizationID: groupDB.OrganizationID,
 		GroupID:        &withdrawal.GroupId,
-		Amount:         withdrawal.Amount,
+		Amount:         amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC(),
 		Service:        withdrawal.Service,
+		ForDate:        &forDate,
+		StationsСount:  &withdrawal.StationsСount,
 	})
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getPrice(prices entity.ServicePrices, service entity.Service) int64 {
+	switch service {
+	case entity.BonusService:
+		return prices.Bonus
+	case entity.SbpService:
+		return prices.Sbp
+	default:
+		panic("Unknown service: " + service)
+	}
 }

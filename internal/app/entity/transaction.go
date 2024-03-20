@@ -14,6 +14,7 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
+		ForDate        *time.Time
 		Service        Service
 		StationsСount  *int
 		UserID         *string
@@ -22,7 +23,7 @@ type (
 	Withdrawal struct {
 		GroupId       uuid.UUID
 		StationsСount int
-		Amount        int64
+		ForDate       time.Time
 		Service       Service
 	}
 

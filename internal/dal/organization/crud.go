@@ -15,13 +15,24 @@ import (
 )
 
 var columns = []string{"id", "name", "display_name", "description", "version", "balance", "deleted"}
+var selectColumns = []string{"id", "name", "display_name", "description", "version", "balance", "deleted",
+	`COALESCE((
+		SELECT price
+		FROM public.service_prices
+		WHERE organization_id = id AND service = 'bonus'
+	), 0) as service_prices_bonus`,
+	`COALESCE((
+		SELECT price
+		FROM public.service_prices
+		WHERE organization_id = id AND service = 'sbp'
+	), 0) as service_prices_sbp`}
 
 func (r *organizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (entity.Organization, error) {
 	op := "failed to get organization by ID: %w"
 
 	var dbOrganization dbmodels.Organization
 	err := r.db.NewSession(nil).
-		Select(columns...).
+		Select(selectColumns...).
 		From(dbmodels.OrganizationsTable).
 		Where(dbmodels.ByIDCondition, organizationID).
 		LoadOneContext(ctx, &dbOrganization)
@@ -51,7 +62,7 @@ func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationF
 
 	var dbOrganizations []dbmodels.Organization
 	_, err = r.db.NewSession(nil).
-		Select(columns...).
+		Select(selectColumns...).
 		From(dbmodels.OrganizationsTable).
 		OrderAsc("name").
 		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
@@ -68,13 +79,13 @@ func (r *organizationRepo) Create(ctx context.Context, organization entity.Organ
 	op := "failed to create organization: %w"
 
 	dbOrganization := conversions.OrganizationToDB(organization)
-	var dbCreatedOrganization dbmodels.Organization
+	var organizationID uuid.UUID
 	err := r.db.NewSession(nil).
 		InsertInto(dbmodels.OrganizationsTable).
 		Columns(columns...).
 		Record(dbOrganization).
-		Returning(columns...).
-		LoadContext(ctx, &dbCreatedOrganization)
+		Returning("id").
+		LoadContext(ctx, &organizationID)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == dbmodels.PQErrAlreadyExists {
@@ -83,7 +94,7 @@ func (r *organizationRepo) Create(ctx context.Context, organization entity.Organ
 		return entity.Organization{}, fmt.Errorf(op, err)
 	}
 
-	return conversions.OrganizationFromDB(dbCreatedOrganization), nil
+	return r.Get(ctx, organizationID)
 }
 
 func (r *organizationRepo) Update(ctx context.Context, organizationID uuid.UUID, organizationUpdate entity.OrganizationUpdate) (entity.Organization, error) {

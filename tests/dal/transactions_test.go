@@ -46,7 +46,10 @@ func TestCreateTransaction(tt *testing.T) {
 	res2, err := repositories.TransactionRepo.Create(ctx, transaction2)
 	t.Nil(err)
 	t.Equal(res2.CreatedAt, transaction2.CreatedAt)
+	t.NotNil(res2.ForDate)
+	t.Equal(*res2.ForDate, *transaction2.ForDate)
 	transaction2.CreatedAt = res2.CreatedAt
+	transaction2.ForDate = res2.ForDate
 	t.DeepEqual(res2, transaction2)
 
 	organization.Balance -= amount

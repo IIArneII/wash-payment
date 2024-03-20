@@ -56,6 +56,7 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		Operation:      operationToRest(transaction.Operation),
 		OrganizationID: &organizationID,
 		CreatedAt:      &createAt,
+		ForDate:        (*strfmt.Date)(transaction.ForDate),
 		Amount:         &transaction.Amount,
 		Sevice:         &service,
 		UserID:         transaction.UserID,

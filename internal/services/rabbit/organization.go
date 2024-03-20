@@ -31,8 +31,8 @@ func (s *rabbitService) Withdrawal(ctx context.Context, withdrawal rabbitEntity.
 	err = s.services.TransactionService.Withdrawal(ctx, entity.Withdrawal{
 		GroupId:       groupId,
 		StationsСount: withdrawal.StationsСount,
-		Amount:        withdrawal.Amount,
 		Service:       serviceFromRabbit(withdrawal.Service),
+		ForDate:       withdrawal.ForDate,
 	})
 	if err != nil {
 		return err

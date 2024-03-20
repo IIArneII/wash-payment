@@ -6,6 +6,7 @@ type (
 		OrganizationRepo OrganizationRepo
 		GroupRepo        GroupRepo
 		TransactionRepo  TransactionRepo
+		ServicePriceRepo ServicePriceRepo
 	}
 
 	Services struct {

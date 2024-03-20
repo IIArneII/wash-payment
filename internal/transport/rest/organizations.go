@@ -17,6 +17,7 @@ func (svc *service) initOrganizationsHandlers(api *operations.WashPaymentAPI) {
 	api.OrganizationsGetHandler = organizations.GetHandlerFunc(svc.get)
 	api.OrganizationsListHandler = organizations.ListHandlerFunc(svc.list)
 	api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(svc.transactions)
+	api.OrganizationsSetServicePricesHandler = organizations.SetServicePricesHandlerFunc(svc.setServicePrices)
 }
 
 func (svc *service) deposit(params organizations.DepositParams, profile *entity.Auth) organizations.DepositResponder {
@@ -25,7 +26,7 @@ func (svc *service) deposit(params organizations.DepositParams, profile *entity.
 
 	id, err := uuid.FromString(params.ID.String())
 	if err != nil {
-		setAPIError(svc.l, op, fmt.Errorf("Wrong organization ID: %w", app.ErrBadRequest), resp)
+		setAPIError(svc.l, op, fmt.Errorf("wrong organization ID: %w", app.ErrBadRequest), resp)
 		return resp
 	}
 
@@ -44,7 +45,7 @@ func (svc *service) get(params organizations.GetParams, profile *entity.Auth) or
 
 	id, err := uuid.FromString(params.ID.String())
 	if err != nil {
-		setAPIError(svc.l, op, fmt.Errorf("Wrong organization ID: %w", app.ErrBadRequest), resp)
+		setAPIError(svc.l, op, fmt.Errorf("wrong organization ID: %w", app.ErrBadRequest), resp)
 		return resp
 	}
 
@@ -83,7 +84,7 @@ func (svc *service) transactions(params organizations.TransactionsParams, profil
 
 	id, err := uuid.FromString(params.ID.String())
 	if err != nil {
-		setAPIError(svc.l, op, fmt.Errorf("Wrong organization ID: %w", app.ErrBadRequest), resp)
+		setAPIError(svc.l, op, fmt.Errorf("wrong organization ID: %w", app.ErrBadRequest), resp)
 		return resp
 	}
 
@@ -101,4 +102,23 @@ func (svc *service) transactions(params organizations.TransactionsParams, profil
 
 	txModels := conversions.TransactionsToRest(txs)
 	return organizations.NewTransactionsOK().WithPayload(txModels)
+}
+
+func (svc *service) setServicePrices(params organizations.SetServicePricesParams, profile *entity.Auth) organizations.SetServicePricesResponder {
+	op := "Set service prices organizations: "
+	resp := organizations.NewSetServicePricesDefault(http.StatusInternalServerError)
+
+	id, err := uuid.FromString(params.ID.String())
+	if err != nil {
+		setAPIError(svc.l, op, fmt.Errorf("wrong organization ID: %w", app.ErrBadRequest), resp)
+		return resp
+	}
+
+	err = svc.services.OrganizationService.SetServicePrices(params.HTTPRequest.Context(), *profile, id, conversions.ServicePricesFromRest(*params.Body))
+	if err != nil {
+		setAPIError(svc.l, op, err, resp)
+		return resp
+	}
+
+	return organizations.NewSetServicePricesNoContent()
 }
