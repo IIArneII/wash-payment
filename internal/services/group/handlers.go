@@ -14,6 +14,9 @@ func (s *groupService) Get(ctx context.Context, groupID uuid.UUID) (entity.Group
 	if err != nil {
 		return entity.Group{}, err
 	}
+	if groupFromDB.Deleted {
+		return entity.Group{}, app.ErrNotFound
+	}
 
 	return groupFromDB, nil
 }

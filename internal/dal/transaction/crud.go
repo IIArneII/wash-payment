@@ -14,7 +14,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var columns = []string{"id", "organization_id", "group_id", "amount", "operation", "created_at", "for_date", "service", "stations_count", "user_id"}
+var columns = []string{"id", "organization_id", "group_id", "amount", "operation", "created_at", "for_date", "service", "stations_count", "user_id", "wash_server_id"}
 
 func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (entity.Transaction, error) {
 	op := "failed to get transaction by ID: %w"

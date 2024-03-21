@@ -18,6 +18,7 @@ type (
 		Service        Service       `db:"service"`
 		StationsСount  *int          `db:"stations_count"`
 		UserID         *string       `db:"user_id"`
+		WashServerID   uuid.NullUUID `db:"wash_server_id"`
 	}
 
 	Operation string

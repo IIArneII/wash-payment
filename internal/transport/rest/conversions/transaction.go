@@ -51,6 +51,12 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		groupID = &gID
 	}
 
+	// var washServerID *strfmt.UUID = nil
+	// if transaction.WashServerID != nil {
+	// 	wID := strfmt.UUID(transaction.WashServerID.String())
+	// 	washServerID = &wID
+	// }
+
 	return models.Transaction{
 		ID:             &id,
 		Operation:      operationToRest(transaction.Operation),
@@ -62,6 +68,7 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		UserID:         transaction.UserID,
 		StationsСount:  stationsСount,
 		GroupID:        groupID,
+		// WashServerID:   washServerID,
 	}
 }
 

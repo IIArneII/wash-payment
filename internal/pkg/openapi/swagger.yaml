@@ -308,6 +308,11 @@ definitions:
         x-nullable: true
         type: string
         format: uuid
+      washServerId:
+        description: Wash server that requested payment for using the service
+        x-nullable: true
+        type: string
+        format: uuid
       stationsСount:
         description: Number of stations in the car wash that requested payment for using of the service
         x-nullable: true

@@ -11,7 +11,7 @@ import (
 )
 
 type RabbitService interface {
-	SendMessage(msg interface{}, service entity.Exchange, routingKey entity.RoutingKey, messageType entity.MessageType) error
+	SendMessage(msg interface{}, service entity.Exchange, routingKey string, messageType entity.MessageType) error
 }
 
 type rabbitService struct {
@@ -100,7 +100,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		string(entity.WithdrawalRequestQueue),
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
 		rabbitmq.WithConsumerOptionsExchangeName(string(entity.PaymentExchange)),
-		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WashPaymentRoutingKey)),
+		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WithdrawalRequestQueue)),
 		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
@@ -108,7 +108,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
-	err = svc.SendMessage(nil, entity.WashBonusExchange, entity.WashBonusRoutingKey, entity.DataMessageType)
+	err = svc.SendMessage(nil, entity.WashBonusExchange, string(entity.WashBonusRoutingKey), entity.DataMessageType)
 	if err != nil {
 		return nil, err
 	}

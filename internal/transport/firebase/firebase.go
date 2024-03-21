@@ -2,6 +2,7 @@ package firebase
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -63,20 +64,24 @@ func (svc *firebaseService) Auth(bearer string) (*entity.Auth, error) {
 
 	idToken := strings.TrimSpace(strings.Replace(bearer, "Bearer", "", 1))
 	if idToken == "" {
+		fmt.Println(1)
 		return nil, ErrUnauthorized
 	}
 
 	token, err := svc.auth.VerifyIDToken(ctx, idToken)
 	if err != nil {
+		fmt.Println(2)
 		return nil, ErrUnauthorized
 	}
 
 	user, err := svc.userSvc.Get(ctx, token.UID)
 	if err != nil {
+		fmt.Println(3)
 		return nil, ErrUnauthorized
 	}
 
 	if user.Role == entity.NoAccessRole {
+		fmt.Println(4)
 		return nil, ErrUnauthorized
 	}
 

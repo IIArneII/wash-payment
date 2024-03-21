@@ -18,6 +18,7 @@ type (
 		Service        Service
 		StationsСount  *int
 		UserID         *string
+		WashServerID   *uuid.UUID
 	}
 
 	Withdrawal struct {
@@ -25,6 +26,7 @@ type (
 		StationsСount int
 		ForDate       time.Time
 		Service       Service
+		WashServerID  uuid.UUID
 	}
 
 	TransactionFilter struct {

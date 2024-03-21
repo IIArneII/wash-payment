@@ -35,6 +35,10 @@ func TransactionFromDB(transaction dbmodels.Transaction) entity.Transaction {
 	if transaction.GroupID.Valid {
 		groupID = &transaction.GroupID.UUID
 	}
+	var washServerID *uuid.UUID
+	if transaction.WashServerID.Valid {
+		washServerID = &transaction.WashServerID.UUID
+	}
 
 	return entity.Transaction{
 		ID:             transaction.ID,
@@ -47,6 +51,7 @@ func TransactionFromDB(transaction dbmodels.Transaction) entity.Transaction {
 		Operation:      OperationFromDb(transaction.Operation),
 		StationsСount:  transaction.StationsСount,
 		UserID:         transaction.UserID,
+		WashServerID:   washServerID,
 	}
 }
 
@@ -63,6 +68,11 @@ func TransactionToDB(transaction entity.Transaction) dbmodels.Transaction {
 	if transaction.GroupID != nil {
 		groupID.UUID = *transaction.GroupID
 		groupID.Valid = true
+	}
+	var washServerID uuid.NullUUID
+	if transaction.WashServerID != nil {
+		washServerID.UUID = *transaction.WashServerID
+		washServerID.Valid = true
 	}
 	var forDate *time.Time = nil
 	if transaction.ForDate != nil {
@@ -81,5 +91,6 @@ func TransactionToDB(transaction entity.Transaction) dbmodels.Transaction {
 		Operation:      OperationToDb(transaction.Operation),
 		StationsСount:  transaction.StationsСount,
 		UserID:         transaction.UserID,
+		WashServerID:   washServerID,
 	}
 }

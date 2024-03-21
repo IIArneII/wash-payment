@@ -24,6 +24,14 @@ func (s *transactionService) List(ctx context.Context, auth entity.Auth, filter 
 		}
 	}
 
+	org, err := s.organizationRepo.Get(ctx, filter.OrganizationID)
+	if err != nil {
+		return entity.Page[entity.Transaction]{}, err
+	}
+	if org.Deleted {
+		return entity.Page[entity.Transaction]{}, app.ErrNotFound
+	}
+
 	txs, err := s.transactionRepo.List(ctx, filter)
 	if err != nil {
 		return entity.Page[entity.Transaction]{}, err
@@ -41,9 +49,12 @@ func (s *transactionService) Deposit(ctx context.Context, auth entity.Auth, orga
 		return app.ErrBadValue
 	}
 
-	_, err := s.organizationRepo.Get(ctx, organizationID)
+	org, err := s.organizationRepo.Get(ctx, organizationID)
 	if err != nil {
 		return err
+	}
+	if org.Deleted {
+		return app.ErrNotFound
 	}
 
 	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
@@ -67,14 +78,19 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 	if err != nil {
 		return err
 	}
+	if groupDB.Deleted {
+		return app.ErrNotFound
+	}
 
 	organizationDB, err := s.organizationRepo.Get(ctx, groupDB.OrganizationID)
 	if err != nil {
 		return err
 	}
+	if organizationDB.Deleted {
+		return app.ErrNotFound
+	}
 
 	amount := int64(withdrawal.StationsСount) * getPrice(organizationDB.ServicePrices, withdrawal.Service)
-
 	if amount > organizationDB.Balance {
 		return app.ErrInsufficientFunds
 	}
@@ -91,6 +107,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		Service:        withdrawal.Service,
 		ForDate:        &forDate,
 		StationsСount:  &withdrawal.StationsСount,
+		WashServerID:   &withdrawal.WashServerID,
 	})
 	if err != nil {
 		return err

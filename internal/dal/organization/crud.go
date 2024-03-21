@@ -54,6 +54,7 @@ func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationF
 	err := r.db.NewSession(nil).
 		Select(dbmodels.CountSelect).
 		From(dbmodels.OrganizationsTable).
+		Where("NOT deleted").
 		LoadOneContext(ctx, &count)
 
 	if err != nil {
@@ -64,6 +65,7 @@ func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationF
 	_, err = r.db.NewSession(nil).
 		Select(selectColumns...).
 		From(dbmodels.OrganizationsTable).
+		Where("NOT deleted").
 		OrderAsc("name").
 		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
 		LoadContext(ctx, &dbOrganizations)

@@ -82,17 +82,14 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 		err = svc.rabbitSvc.Withdrawal(cxt, msg)
 		if err != nil {
 			svc.l.Info(err)
-			_ = svc.SendMessage(entity.WithdrawalFailure{
-				GroupId: msg.GroupId,
-				Service: msg.Service,
-				Error:   err.Error(),
-			}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalFailureMessageType)
+			_ = svc.SendMessage(withdrawalFailureMsg(msg, err), entity.PaymentExchange, d.ReplyTo, entity.WithdrawalFailureMessageType)
 			return rabbitmq.NackDiscard
 		}
-		_ = svc.SendMessage(entity.WithdrawalSuccess{
-			GroupId: msg.GroupId,
-			Service: msg.Service,
-		}, entity.PaymentExchange, entity.RoutingKey(entity.WithdrawalResultQueue), entity.WithdrawalSuccessMessageType)
+		svc.l.Info("Отправка ответа об успехеcls")
+		err = svc.SendMessage(withdrawalMsg(msg), entity.PaymentExchange, d.ReplyTo, entity.WithdrawalSuccessMessageType)
+		if err != nil {
+			svc.l.Info(err)
+		}
 
 	default:
 		return rabbitmq.NackDiscard
@@ -101,7 +98,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 	return rabbitmq.Ack
 }
 
-func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, routingKey entity.RoutingKey, messageType entity.MessageType) error {
+func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, routingKey string, messageType entity.MessageType) error {
 	jsonMsg, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -125,5 +122,24 @@ func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, 
 		)
 	default:
 		panic("Unknown service")
+	}
+}
+
+func withdrawalFailureMsg(withdrawal entity.Withdrawal, err error) entity.WithdrawalFailure {
+	return entity.WithdrawalFailure{
+		GroupId:       withdrawal.GroupId,
+		Service:       withdrawal.Service,
+		StationsСount: withdrawal.StationsСount,
+		ForDate:       withdrawal.ForDate,
+		Error:         err.Error(),
+	}
+}
+
+func withdrawalMsg(withdrawal entity.Withdrawal) entity.WithdrawalSuccess {
+	return entity.WithdrawalSuccess{
+		GroupId:       withdrawal.GroupId,
+		Service:       withdrawal.Service,
+		StationsСount: withdrawal.StationsСount,
+		ForDate:       withdrawal.ForDate,
 	}
 }
