@@ -20,10 +20,11 @@ func TestCreateTransaction(tt *testing.T) {
 	organization := generateOrganization(10000, 1)
 	group := generateGroup(organization.ID, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
-	transaction1 := generateTransactionDeposit(amount, organization.ID, user.ID)
-	transaction2 := generateTransactionDebit(amount, organization.ID, group.ID)
-	transaction3 := generateTransactionDebit(100000, organization.ID, group.ID)
-	transaction4 := generateTransactionDebit(100000, uuid.NewV4(), group.ID)
+	washServer := generateWashServer(group.ID, 1)
+	transactionCreate1, transaction1 := generateTransactionDeposit(amount, organization.ID, user.ID)
+	transactionCreate2, transaction2 := generateTransactionDebit(amount, organization.ID, group, washServer)
+	transactionCreate3, _ := generateTransactionDebit(100000, organization.ID, group, washServer)
+	transactionCreate4, _ := generateTransactionDebit(100000, uuid.NewV4(), group, washServer)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization)
 	t.Nil(err)
@@ -31,8 +32,10 @@ func TestCreateTransaction(tt *testing.T) {
 	t.Nil(err)
 	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
+	_, err = repositories.WashServerRepo.Create(ctx, washServer)
+	t.Nil(err)
 
-	res1, err := repositories.TransactionRepo.Create(ctx, transaction1)
+	res1, err := repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Nil(err)
 	t.Equal(res1.CreatedAt, transaction1.CreatedAt)
 	transaction1.CreatedAt = res1.CreatedAt
@@ -43,7 +46,7 @@ func TestCreateTransaction(tt *testing.T) {
 	t.Nil(err)
 	t.DeepEqual(orgDB, organization)
 
-	res2, err := repositories.TransactionRepo.Create(ctx, transaction2)
+	res2, err := repositories.TransactionRepo.Create(ctx, transactionCreate2)
 	t.Nil(err)
 	t.Equal(res2.CreatedAt, transaction2.CreatedAt)
 	t.NotNil(res2.ForDate)
@@ -57,13 +60,13 @@ func TestCreateTransaction(tt *testing.T) {
 	t.Nil(err)
 	t.DeepEqual(orgDB, organization)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction3)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate3)
 	t.Err(err, app.ErrInsufficientFunds)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction4)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate4)
 	t.Err(err, app.ErrNotFound)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Err(err, app.ErrAlreadyExists)
 }
 
@@ -74,15 +77,15 @@ func TestGetTransaction(tt *testing.T) {
 
 	organization := generateOrganization(10000, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
-	var transaction1 = generateTransactionDeposit(100, organization.ID, user.ID)
-	var transaction2 = generateTransactionDeposit(100, organization.ID, user.ID)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization.ID, user.ID)
+	_, transaction2 := generateTransactionDeposit(100, organization.ID, user.ID)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization)
 	t.Nil(err)
 	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Nil(err)
 
 	resGet1, err := repositories.TransactionRepo.Get(ctx, transaction1.ID)
@@ -103,9 +106,10 @@ func TestListTransaction(tt *testing.T) {
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
-	var transaction1 = generateTransactionDeposit(100, organization1.ID, user.ID)
-	var transaction2 = generateTransactionDeposit(100, organization1.ID, user.ID)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization1.ID, user.ID)
+	transactionCreate2, transaction2 := generateTransactionDeposit(100, organization1.ID, user.ID)
 	transaction2.CreatedAt = transaction2.CreatedAt.Add(time.Second)
+	transactionCreate2.CreatedAt = transactionCreate2.CreatedAt.Add(time.Second)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
 	t.Nil(err)
@@ -114,10 +118,10 @@ func TestListTransaction(tt *testing.T) {
 	_, err = repositories.UserRepo.Create(ctx, user)
 	t.Nil(err)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Nil(err)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction2)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate2)
 	t.Nil(err)
 
 	filter := entity.TransactionFilter{

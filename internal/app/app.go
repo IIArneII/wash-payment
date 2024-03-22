@@ -14,6 +14,7 @@ type (
 		UserService         UserService
 		OrganizationService OrganizationService
 		GroupService        GroupService
+		WashServerService   WashServerService
 		TransactionService  TransactionService
 	}
 )

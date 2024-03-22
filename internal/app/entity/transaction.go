@@ -10,7 +10,6 @@ type (
 	Transaction struct {
 		ID             uuid.UUID
 		OrganizationID uuid.UUID
-		GroupID        *uuid.UUID
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
@@ -18,6 +17,21 @@ type (
 		Service        Service
 		StationsСount  *int
 		UserID         *string
+		Group          *Group
+		WashServer     *WashServer
+	}
+
+	TransactionCreate struct {
+		ID             uuid.UUID
+		OrganizationID uuid.UUID
+		Amount         int64
+		Operation      Operation
+		CreatedAt      time.Time
+		ForDate        *time.Time
+		Service        Service
+		StationsСount  *int
+		UserID         *string
+		GroupID        *uuid.UUID
 		WashServerID   *uuid.UUID
 	}
 

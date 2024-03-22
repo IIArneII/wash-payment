@@ -54,6 +54,23 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			return rabbitmq.NackRequeue
 		}
 
+	case entity.WashServerMessageType:
+		var msg entity.WashServer
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			svc.l.Error(err)
+			return rabbitmq.NackRequeue
+		}
+
+		err = svc.rabbitSvc.UpsertWashServer(cxt, msg)
+		if err != nil {
+			if errors.Is(err, app.ErrOldVersion) {
+				return rabbitmq.NackDiscard
+			}
+			svc.l.Error(err)
+			return rabbitmq.NackRequeue
+		}
+
 	case entity.UserMessageType:
 		var msg entity.User
 		err := json.Unmarshal(d.Body, &msg)

@@ -57,7 +57,7 @@ func (s *transactionService) Deposit(ctx context.Context, auth entity.Auth, orga
 		return app.ErrNotFound
 	}
 
-	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
+	_, err = s.transactionRepo.Create(ctx, entity.TransactionCreate{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
 		UserID:         &auth.User.ID,
@@ -105,7 +105,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 
 	forDate := withdrawal.ForDate.Truncate(24 * time.Hour)
 
-	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
+	_, err = s.transactionRepo.Create(ctx, entity.TransactionCreate{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationDB.ID,
 		GroupID:        &groupDB.ID,

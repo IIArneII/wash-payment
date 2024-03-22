@@ -5,6 +5,37 @@ import (
 	"wash-payment/internal/dal/dbmodels"
 )
 
+func GroupFromTransactionDB(transaction dbmodels.Transaction) *entity.Group {
+	if !transaction.GroupID.Valid {
+		return nil
+	}
+	var name string
+	if transaction.GroupName != nil {
+		name = *transaction.GroupName
+	}
+	var description string
+	if transaction.GroupDescription != nil {
+		description = *transaction.GroupDescription
+	}
+	var version int64
+	if transaction.GroupVersion != nil {
+		version = *transaction.GroupVersion
+	}
+	var deleted bool
+	if transaction.GroupDeleted != nil {
+		deleted = *transaction.GroupDeleted
+	}
+
+	return &entity.Group{
+		ID:             transaction.GroupID.UUID,
+		OrganizationID: transaction.GroupOrganizationID.UUID,
+		Name:           name,
+		Description:    description,
+		Version:        version,
+		Deleted:        deleted,
+	}
+}
+
 func GroupFromDB(gr dbmodels.Group) entity.Group {
 	return entity.Group{
 		ID:             gr.ID,

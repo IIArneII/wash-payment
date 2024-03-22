@@ -15,15 +15,40 @@ import (
 )
 
 var columns = []string{"id", "organization_id", "group_id", "amount", "operation", "created_at", "for_date", "service", "stations_count", "user_id", "wash_server_id"}
+var selectColumns = []string{
+	"t.id AS t_id",
+	"t.organization_id AS t_organization_id",
+	"t.amount AS t_amount",
+	"t.operation AS t_operation",
+	"t.created_at AS t_created_at",
+	"t.for_date AS t_for_date",
+	"t.service AS t_service",
+	"t.stations_count AS t_stations_count",
+	"t.user_id AS t_user_id",
+	"g.id AS g_id",
+	"g.organization_id AS g_organization_id",
+	"g.name AS g_name",
+	"g.description AS g_description",
+	"g.version AS g_version",
+	"g.deleted AS g_deleted",
+	"ws.id AS ws_id",
+	"ws.title AS ws_title",
+	"ws.description AS ws_description",
+	"ws.group_id AS ws_group_id",
+	"ws.version AS ws_version",
+	"ws.deleted AS ws_deleted",
+}
 
 func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (entity.Transaction, error) {
 	op := "failed to get transaction by ID: %w"
 
 	var dbTransaction dbmodels.Transaction
 	err := r.db.NewSession(nil).
-		Select(columns...).
-		From(dbmodels.TransactionsTable).
-		Where(dbmodels.ByIDCondition, transactionID).
+		Select(selectColumns...).
+		From(dbr.I(dbmodels.TransactionsTable).As("t")).
+		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
+		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
+		Where("t.id = ?", transactionID).
 		LoadOneContext(ctx, &dbTransaction)
 
 	if err != nil {
@@ -53,10 +78,12 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 
 	var dbTransaction []dbmodels.Transaction
 	_, err = r.db.NewSession(nil).
-		Select(columns...).
-		From(dbmodels.TransactionsTable).
-		Where("organization_id = ?", filter.OrganizationID).
-		OrderDesc("created_at").
+		Select(selectColumns...).
+		From(dbr.I(dbmodels.TransactionsTable).As("t")).
+		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
+		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
+		Where("t.organization_id = ?", filter.OrganizationID).
+		OrderDesc("t.created_at").
 		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
 		LoadContext(ctx, &dbTransaction)
 
@@ -67,7 +94,7 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 	return entity.NewPage(conversions.TransactionsFromDB(dbTransaction), filter.Filter, count), nil
 }
 
-func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error) {
+func (r *transactionRepo) Create(ctx context.Context, transaction entity.TransactionCreate) (entity.Transaction, error) {
 	op := "failed to create transaction: %w"
 
 	tx, err := r.db.NewSession(nil).BeginTx(ctx, nil)
@@ -78,7 +105,7 @@ func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transac
 
 	currentBalance, err := getСurrentBalance(ctx, tx, transaction.OrganizationID)
 	if err != nil {
-		return entity.Transaction{}, err
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 
 	newBalance := getNewBalance(currentBalance, transaction.Amount, transaction.Operation)
@@ -86,14 +113,14 @@ func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transac
 		return entity.Transaction{}, app.ErrInsufficientFunds
 	}
 
-	dbTransaction, err := createTransaction(ctx, tx, conversions.TransactionToDB(transaction))
+	dbTransaction, err := createTransaction(ctx, tx, conversions.TransactionCreateToDB(transaction))
 	if err != nil {
-		return entity.Transaction{}, err
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 
 	err = changeOrganizationBalance(ctx, tx, transaction.OrganizationID, newBalance)
 	if err != nil {
-		return entity.Transaction{}, err
+		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
 
 	err = tx.Commit()
@@ -104,20 +131,35 @@ func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transac
 	return conversions.TransactionFromDB(dbTransaction), nil
 }
 
-func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.Transaction) (dbmodels.Transaction, error) {
+func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.TransactionCreate) (dbmodels.Transaction, error) {
 	op := "failed to create transaction: %w"
 
-	var dbTransaction dbmodels.Transaction
-	err := tx.
+	_, err := tx.
 		InsertInto(dbmodels.TransactionsTable).
 		Columns(columns...).
 		Record(transaction).
-		Returning(columns...).
-		LoadContext(ctx, &dbTransaction)
+		ExecContext(ctx)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == dbmodels.PQErrAlreadyExists {
 			return dbmodels.Transaction{}, app.ErrAlreadyExists
+		}
+
+		return dbmodels.Transaction{}, fmt.Errorf(op, err)
+	}
+
+	var dbTransaction dbmodels.Transaction
+	err = tx.
+		Select(selectColumns...).
+		From(dbr.I(dbmodels.TransactionsTable).As("t")).
+		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
+		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
+		Where("t.id = ?", transaction.ID).
+		LoadOneContext(ctx, &dbTransaction)
+
+	if err != nil {
+		if errors.Is(err, dbr.ErrNotFound) {
+			return dbmodels.Transaction{}, app.ErrNotFound
 		}
 
 		return dbmodels.Transaction{}, fmt.Errorf(op, err)

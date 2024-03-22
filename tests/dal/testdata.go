@@ -65,8 +65,8 @@ func generateWashServer(groupID uuid.UUID, version int) entity.WashServer {
 	}
 }
 
-func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID string) entity.Transaction {
-	return entity.Transaction{
+func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID string) (entity.TransactionCreate, entity.Transaction) {
+	transactionCreate := entity.TransactionCreate{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
 		Amount:         amount,
@@ -75,15 +75,28 @@ func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID s
 		UserID:         &userID,
 		Service:        entity.PaymentService,
 	}
+
+	transaction := entity.Transaction{
+		ID:             transactionCreate.ID,
+		OrganizationID: transactionCreate.OrganizationID,
+		Amount:         transactionCreate.Amount,
+		Operation:      transactionCreate.Operation,
+		CreatedAt:      transactionCreate.CreatedAt,
+		UserID:         transactionCreate.UserID,
+		Service:        transactionCreate.Service,
+	}
+
+	return transactionCreate, transaction
 }
 
-func generateTransactionDebit(amount int64, organizationID uuid.UUID, groupID uuid.UUID) entity.Transaction {
+func generateTransactionDebit(amount int64, organizationID uuid.UUID, group entity.Group, washServer entity.WashServer) (entity.TransactionCreate, entity.Transaction) {
 	stationsСount := 5
 	forDate := time.Now().UTC().Truncate(24 * time.Hour)
-	return entity.Transaction{
+	transactionCreate := entity.TransactionCreate{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
-		GroupID:        &groupID,
+		GroupID:        &group.ID,
+		WashServerID:   &washServer.ID,
 		Amount:         amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
@@ -91,4 +104,19 @@ func generateTransactionDebit(amount int64, organizationID uuid.UUID, groupID uu
 		Service:        entity.BonusService,
 		StationsСount:  &stationsСount,
 	}
+
+	transaction := entity.Transaction{
+		ID:             transactionCreate.ID,
+		OrganizationID: transactionCreate.OrganizationID,
+		Amount:         transactionCreate.Amount,
+		Operation:      transactionCreate.Operation,
+		CreatedAt:      transactionCreate.CreatedAt,
+		ForDate:        transactionCreate.ForDate,
+		Service:        transactionCreate.Service,
+		StationsСount:  transactionCreate.StationsСount,
+		Group:          &group,
+		WashServer:     &washServer,
+	}
+
+	return transactionCreate, transaction
 }

@@ -33,6 +33,26 @@ func serviceToRest(service entity.Service) models.Service {
 	}
 }
 
+func GroupToRest(group entity.Group) models.Group {
+	id := strfmt.UUID(group.ID.String())
+
+	return models.Group{
+		ID:      &id,
+		Name:    &group.Name,
+		Deleted: &group.Deleted,
+	}
+}
+
+func WashServerToRest(group entity.WashServer) models.WashServer {
+	id := strfmt.UUID(group.ID.String())
+
+	return models.WashServer{
+		ID:      &id,
+		Title:   &group.Title,
+		Deleted: &group.Deleted,
+	}
+}
+
 func TransactionToRest(transaction entity.Transaction) models.Transaction {
 	id := strfmt.UUID(transaction.ID.String())
 	organizationID := strfmt.UUID(transaction.OrganizationID.String())
@@ -45,17 +65,17 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		stationsСount = &sc
 	}
 
-	var groupID *strfmt.UUID = nil
-	if transaction.GroupID != nil {
-		gID := strfmt.UUID(transaction.GroupID.String())
-		groupID = &gID
+	var group *models.Group = nil
+	if transaction.Group != nil {
+		g := GroupToRest(*transaction.Group)
+		group = &g
 	}
 
-	// var washServerID *strfmt.UUID = nil
-	// if transaction.WashServerID != nil {
-	// 	wID := strfmt.UUID(transaction.WashServerID.String())
-	// 	washServerID = &wID
-	// }
+	var washServer *models.WashServer = nil
+	if transaction.WashServer != nil {
+		w := WashServerToRest(*transaction.WashServer)
+		washServer = &w
+	}
 
 	return models.Transaction{
 		ID:             &id,
@@ -67,8 +87,8 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		Sevice:         &service,
 		UserID:         transaction.UserID,
 		StationsСount:  stationsСount,
-		GroupID:        groupID,
-		// WashServerID:   washServerID,
+		Group:          group,
+		WashServer:     washServer,
 	}
 }
 
