@@ -72,6 +72,11 @@ func configureAPI(api *operations.WashPaymentAPI) http.Handler {
 			return organizations.ListNotImplemented()
 		})
 	}
+	if api.OrganizationsSetServicePricesHandler == nil {
+		api.OrganizationsSetServicePricesHandler = organizations.SetServicePricesHandlerFunc(func(params organizations.SetServicePricesParams, principal *entity.Auth) organizations.SetServicePricesResponder {
+			return organizations.SetServicePricesNotImplemented()
+		})
+	}
 	if api.OrganizationsTransactionsHandler == nil {
 		api.OrganizationsTransactionsHandler = organizations.TransactionsHandlerFunc(func(params organizations.TransactionsParams, principal *entity.Auth) organizations.TransactionsResponder {
 			return organizations.TransactionsNotImplemented()

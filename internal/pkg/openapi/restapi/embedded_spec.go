@@ -329,6 +329,27 @@ func init() {
         }
       }
     },
+    "Group": {
+      "description": "Group that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "Operation": {
       "description": "Type of operation",
       "type": "string",
@@ -454,11 +475,8 @@ func init() {
           "format": "date",
           "x-nullable": true
         },
-        "groupId": {
-          "description": "Group that requested payment for using the service",
-          "type": "string",
-          "format": "uuid",
-          "x-nullable": true
+        "group": {
+          "$ref": "#/definitions/Group"
         },
         "id": {
           "type": "string",
@@ -484,6 +502,9 @@ func init() {
           "description": "The user who credited the organisation's account",
           "type": "string",
           "x-nullable": true
+        },
+        "washServer": {
+          "$ref": "#/definitions/WashServer"
         }
       }
     },
@@ -514,6 +535,27 @@ func init() {
         },
         "totalPages": {
           "type": "integer"
+        }
+      }
+    },
+    "WashServer": {
+      "description": "Wash server that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string"
         }
       }
     }
@@ -913,6 +955,27 @@ func init() {
         }
       }
     },
+    "Group": {
+      "description": "Group that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "Operation": {
       "description": "Type of operation",
       "type": "string",
@@ -1041,11 +1104,8 @@ func init() {
           "format": "date",
           "x-nullable": true
         },
-        "groupId": {
-          "description": "Group that requested payment for using the service",
-          "type": "string",
-          "format": "uuid",
-          "x-nullable": true
+        "group": {
+          "$ref": "#/definitions/Group"
         },
         "id": {
           "type": "string",
@@ -1071,6 +1131,9 @@ func init() {
           "description": "The user who credited the organisation's account",
           "type": "string",
           "x-nullable": true
+        },
+        "washServer": {
+          "$ref": "#/definitions/WashServer"
         }
       }
     },
@@ -1101,6 +1164,27 @@ func init() {
         },
         "totalPages": {
           "type": "integer"
+        }
+      }
+    },
+    "WashServer": {
+      "description": "Wash server that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string"
         }
       }
     }

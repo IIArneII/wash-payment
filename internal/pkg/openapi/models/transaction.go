@@ -35,9 +35,8 @@ type Transaction struct {
 	// Format: date
 	ForDate *strfmt.Date `json:"forDate,omitempty"`
 
-	// Group that requested payment for using the service
-	// Format: uuid
-	GroupID *strfmt.UUID `json:"groupId,omitempty"`
+	// group
+	Group *Group `json:"group,omitempty"`
 
 	// id
 	// Required: true
@@ -63,6 +62,9 @@ type Transaction struct {
 
 	// The user who credited the organisation's account
 	UserID *string `json:"userId,omitempty"`
+
+	// wash server
+	WashServer *WashServer `json:"washServer,omitempty"`
 }
 
 // UnmarshalJSON unmarshals this object while disallowing additional properties from JSON
@@ -83,9 +85,8 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 		// Format: date
 		ForDate *strfmt.Date `json:"forDate,omitempty"`
 
-		// Group that requested payment for using the service
-		// Format: uuid
-		GroupID *strfmt.UUID `json:"groupId,omitempty"`
+		// group
+		Group *Group `json:"group,omitempty"`
 
 		// id
 		// Required: true
@@ -111,6 +112,9 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 		// The user who credited the organisation's account
 		UserID *string `json:"userId,omitempty"`
+
+		// wash server
+		WashServer *WashServer `json:"washServer,omitempty"`
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(data))
@@ -122,13 +126,14 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 	m.Amount = props.Amount
 	m.CreatedAt = props.CreatedAt
 	m.ForDate = props.ForDate
-	m.GroupID = props.GroupID
+	m.Group = props.Group
 	m.ID = props.ID
 	m.Operation = props.Operation
 	m.OrganizationID = props.OrganizationID
 	m.Sevice = props.Sevice
 	m.StationsСount = props.StationsСount
 	m.UserID = props.UserID
+	m.WashServer = props.WashServer
 	return nil
 }
 
@@ -148,7 +153,7 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateGroupID(formats); err != nil {
+	if err := m.validateGroup(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -169,6 +174,10 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateStationsСount(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateWashServer(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -216,13 +225,20 @@ func (m *Transaction) validateForDate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Transaction) validateGroupID(formats strfmt.Registry) error {
-	if swag.IsZero(m.GroupID) { // not required
+func (m *Transaction) validateGroup(formats strfmt.Registry) error {
+	if swag.IsZero(m.Group) { // not required
 		return nil
 	}
 
-	if err := validate.FormatOf("groupId", "body", "uuid", m.GroupID.String(), formats); err != nil {
-		return err
+	if m.Group != nil {
+		if err := m.Group.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("group")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("group")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -314,9 +330,32 @@ func (m *Transaction) validateStationsСount(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Transaction) validateWashServer(formats strfmt.Registry) error {
+	if swag.IsZero(m.WashServer) { // not required
+		return nil
+	}
+
+	if m.WashServer != nil {
+		if err := m.WashServer.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("washServer")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("washServer")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ContextValidate validate this transaction based on the context it is used
 func (m *Transaction) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.contextValidateGroup(ctx, formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.contextValidateOperation(ctx, formats); err != nil {
 		res = append(res, err)
@@ -326,9 +365,34 @@ func (m *Transaction) ContextValidate(ctx context.Context, formats strfmt.Regist
 		res = append(res, err)
 	}
 
+	if err := m.contextValidateWashServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Transaction) contextValidateGroup(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Group != nil {
+
+		if swag.IsZero(m.Group) { // not required
+			return nil
+		}
+
+		if err := m.Group.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("group")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("group")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -358,6 +422,27 @@ func (m *Transaction) contextValidateSevice(ctx context.Context, formats strfmt.
 				return ve.ValidateName("sevice")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
 				return ce.ValidateName("sevice")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Transaction) contextValidateWashServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.WashServer != nil {
+
+		if swag.IsZero(m.WashServer) { // not required
+			return nil
+		}
+
+		if err := m.WashServer.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("washServer")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("washServer")
 			}
 			return err
 		}
