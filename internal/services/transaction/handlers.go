@@ -74,7 +74,15 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		return app.ErrBadValue
 	}
 
-	groupDB, err := s.groupRepo.Get(ctx, withdrawal.GroupId)
+	washServerDB, err := s.washserverRepo.Get(ctx, withdrawal.WashServerID)
+	if err != nil {
+		return err
+	}
+	if washServerDB.Deleted {
+		return app.ErrNotFound
+	}
+
+	groupDB, err := s.groupRepo.Get(ctx, washServerDB.GroupID)
 	if err != nil {
 		return err
 	}
@@ -99,15 +107,15 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 
 	_, err = s.transactionRepo.Create(ctx, entity.Transaction{
 		ID:             uuid.NewV4(),
-		OrganizationID: groupDB.OrganizationID,
-		GroupID:        &withdrawal.GroupId,
+		OrganizationID: organizationDB.ID,
+		GroupID:        &groupDB.ID,
 		Amount:         amount,
 		Operation:      entity.DebitOperation,
 		CreatedAt:      time.Now().UTC(),
 		Service:        withdrawal.Service,
 		ForDate:        &forDate,
 		StationsСount:  &withdrawal.StationsСount,
-		WashServerID:   &withdrawal.WashServerID,
+		WashServerID:   &washServerDB.ID,
 	})
 	if err != nil {
 		return err

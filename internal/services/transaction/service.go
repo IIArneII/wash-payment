@@ -10,6 +10,7 @@ type transactionService struct {
 	l                *zap.SugaredLogger
 	organizationRepo app.OrganizationRepo
 	groupRepo        app.GroupRepo
+	washserverRepo   app.WashServerRepo
 	transactionRepo  app.TransactionRepo
 }
 

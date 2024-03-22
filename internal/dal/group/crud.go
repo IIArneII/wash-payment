@@ -22,7 +22,7 @@ func (r *groupRepo) Get(ctx context.Context, id uuid.UUID) (entity.Group, error)
 	var dbGroup dbmodels.Group
 	err := r.db.NewSession(nil).
 		Select(columns...).
-		From(dbmodels.GroupTable).
+		From(dbmodels.GroupsTable).
 		Where(dbmodels.ByIDCondition, id).
 		LoadOneContext(ctx, &dbGroup)
 
@@ -42,7 +42,7 @@ func (r *groupRepo) Create(ctx context.Context, group entity.Group) (entity.Grou
 	dbGroup := conversions.GroupToDB(group)
 	var dbCreatedGroup dbmodels.Group
 	err := r.db.NewSession(nil).
-		InsertInto(dbmodels.GroupTable).
+		InsertInto(dbmodels.GroupsTable).
 		Columns(columns...).
 		Record(dbGroup).
 		Returning(columns...).
@@ -64,7 +64,7 @@ func (r *groupRepo) Update(ctx context.Context, id uuid.UUID, groupUpdate entity
 	groupUpdateDB := conversions.GroupUpdateToDB(groupUpdate)
 
 	query := r.db.NewSession(nil).
-		Update(dbmodels.GroupTable).
+		Update(dbmodels.GroupsTable).
 		Where(dbmodels.ByIDCondition, id)
 
 	if groupUpdateDB.Name != nil {

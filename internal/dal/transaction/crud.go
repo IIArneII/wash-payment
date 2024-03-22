@@ -22,7 +22,7 @@ func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (ent
 	var dbTransaction dbmodels.Transaction
 	err := r.db.NewSession(nil).
 		Select(columns...).
-		From(dbmodels.TransactionTable).
+		From(dbmodels.TransactionsTable).
 		Where(dbmodels.ByIDCondition, transactionID).
 		LoadOneContext(ctx, &dbTransaction)
 
@@ -43,7 +43,7 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 	var count int
 	err := r.db.NewSession(nil).
 		Select(dbmodels.CountSelect).
-		From(dbmodels.TransactionTable).
+		From(dbmodels.TransactionsTable).
 		Where("organization_id = ?", filter.OrganizationID).
 		LoadOneContext(ctx, &count)
 
@@ -54,7 +54,7 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 	var dbTransaction []dbmodels.Transaction
 	_, err = r.db.NewSession(nil).
 		Select(columns...).
-		From(dbmodels.TransactionTable).
+		From(dbmodels.TransactionsTable).
 		Where("organization_id = ?", filter.OrganizationID).
 		OrderDesc("created_at").
 		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
@@ -109,7 +109,7 @@ func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.Tra
 
 	var dbTransaction dbmodels.Transaction
 	err := tx.
-		InsertInto(dbmodels.TransactionTable).
+		InsertInto(dbmodels.TransactionsTable).
 		Columns(columns...).
 		Record(transaction).
 		Returning(columns...).

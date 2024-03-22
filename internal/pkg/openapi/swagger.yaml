@@ -272,6 +272,38 @@ definitions:
       - balance
       - servicePrices
   
+  Group:
+    description: Group that requested payment for using the service
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      deleted:
+        type: boolean
+    required:
+      - id
+      - name
+      - deleted
+  
+  WashServer:
+    description: Wash server that requested payment for using the service
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      title:
+        type: string
+      deleted:
+        type: boolean
+    required:
+      - id
+      - title
+      - deleted
+  
   OrganizationPage:
     type: object
     properties:
@@ -303,16 +335,10 @@ definitions:
       organizationId:
         type: string
         format: uuid
-      groupId:
-        description: Group that requested payment for using the service
-        x-nullable: true
-        type: string
-        format: uuid
-      washServerId:
-        description: Wash server that requested payment for using the service
-        x-nullable: true
-        type: string
-        format: uuid
+      group:
+        $ref: "#/definitions/Group"
+      washServer:
+        $ref: "#/definitions/WashServer"
       stationsСount:
         description: Number of stations in the car wash that requested payment for using of the service
         x-nullable: true

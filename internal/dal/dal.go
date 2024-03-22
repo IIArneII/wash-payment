@@ -7,6 +7,7 @@ import (
 	"wash-payment/internal/dal/serviceprice"
 	"wash-payment/internal/dal/transaction"
 	"wash-payment/internal/dal/user"
+	"wash-payment/internal/dal/washserver"
 
 	"github.com/gocraft/dbr/v2"
 	"go.uber.org/zap"
@@ -19,5 +20,6 @@ func NewRepositories(l *zap.SugaredLogger, db *dbr.Connection) *app.Repositories
 		GroupRepo:        group.NewRepo(l, db),
 		TransactionRepo:  transaction.NewRepo(l, db),
 		ServicePriceRepo: serviceprice.NewRepo(l, db),
+		WashServerRepo:   washserver.NewRepo(l, db),
 	}
 }

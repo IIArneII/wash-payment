@@ -23,17 +23,12 @@ func (s *rabbitService) UpsertOrganization(ctx context.Context, rabbitOrganizati
 }
 
 func (s *rabbitService) Withdrawal(ctx context.Context, withdrawal rabbitEntity.Withdrawal) error {
-	groupId, err := uuid.FromString(withdrawal.GroupId)
-	if err != nil {
-		return err
-	}
 	washServerID, err := uuid.FromString(withdrawal.WashServerID)
 	if err != nil {
 		return err
 	}
 
 	err = s.services.TransactionService.Withdrawal(ctx, entity.Withdrawal{
-		GroupId:       groupId,
 		StationsСount: withdrawal.StationsСount,
 		Service:       serviceFromRabbit(withdrawal.Service),
 		ForDate:       withdrawal.ForDate,

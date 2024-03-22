@@ -22,7 +22,7 @@ func (r *servicePriceRepo) Get(ctx context.Context, organizationID uuid.UUID, se
 	var dbServicePrice dbmodels.ServicePrice
 	err := r.db.NewSession(nil).
 		Select(columns...).
-		From(dbmodels.ServicePriceTable).
+		From(dbmodels.ServicePricesTable).
 		Where(dbmodels.ByOrgIDAndSvcCondition, organizationID, service).
 		LoadOneContext(ctx, &dbServicePrice)
 
@@ -42,7 +42,7 @@ func (r *servicePriceRepo) Create(ctx context.Context, servicePrice entity.Servi
 	dbServicePrice := conversions.ServicePriceToDB(servicePrice)
 	var dbCreatedServicePrice dbmodels.ServicePrice
 	err := r.db.NewSession(nil).
-		InsertInto(dbmodels.ServicePriceTable).
+		InsertInto(dbmodels.ServicePricesTable).
 		Columns(columns...).
 		Record(dbServicePrice).
 		Returning(columns...).
@@ -62,7 +62,7 @@ func (r *servicePriceRepo) Update(ctx context.Context, organizationID uuid.UUID,
 	op := "failed to update service price: %w"
 
 	result, err := r.db.NewSession(nil).
-		Update(dbmodels.ServicePriceTable).
+		Update(dbmodels.ServicePricesTable).
 		Where(dbmodels.ByOrgIDAndSvcCondition, organizationID, service).
 		Set("price", price).
 		ExecContext(ctx)

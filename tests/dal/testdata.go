@@ -54,6 +54,17 @@ func generateGroup(organizationID uuid.UUID, version int) entity.Group {
 	}
 }
 
+func generateWashServer(groupID uuid.UUID, version int) entity.WashServer {
+	return entity.WashServer{
+		ID:          uuid.NewV4(),
+		GroupID:     groupID,
+		Title:       randomdata.FirstName(randomdata.Male),
+		Description: randomdata.RandStringRunes(50),
+		Deleted:     false,
+		Version:     int64(version),
+	}
+}
+
 func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID string) entity.Transaction {
 	return entity.Transaction{
 		ID:             uuid.NewV4(),

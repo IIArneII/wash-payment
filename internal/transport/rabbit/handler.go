@@ -127,7 +127,6 @@ func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, 
 
 func withdrawalFailureMsg(withdrawal entity.Withdrawal, err error) entity.WithdrawalFailure {
 	return entity.WithdrawalFailure{
-		GroupId:       withdrawal.GroupId,
 		Service:       withdrawal.Service,
 		StationsСount: withdrawal.StationsСount,
 		ForDate:       withdrawal.ForDate,
@@ -137,7 +136,6 @@ func withdrawalFailureMsg(withdrawal entity.Withdrawal, err error) entity.Withdr
 
 func withdrawalMsg(withdrawal entity.Withdrawal) entity.WithdrawalSuccess {
 	return entity.WithdrawalSuccess{
-		GroupId:       withdrawal.GroupId,
 		Service:       withdrawal.Service,
 		StationsСount: withdrawal.StationsСount,
 		ForDate:       withdrawal.ForDate,

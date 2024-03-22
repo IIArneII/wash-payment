@@ -22,7 +22,6 @@ type (
 	}
 
 	Withdrawal struct {
-		GroupId       uuid.UUID
 		StationsСount int
 		ForDate       time.Time
 		Service       Service

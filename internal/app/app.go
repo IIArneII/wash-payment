@@ -7,6 +7,7 @@ type (
 		GroupRepo        GroupRepo
 		TransactionRepo  TransactionRepo
 		ServicePriceRepo ServicePriceRepo
+		WashServerRepo   WashServerRepo
 	}
 
 	Services struct {
