@@ -3,21 +3,21 @@ package entity
 import "time"
 
 type Withdrawal struct {
-	StationsСount int       `json:"stationsСount"`
+	StationsCount int       `json:"stationsCount"`
 	Service       string    `json:"service"`
 	ForDate       time.Time `json:"forDate"`
 	WashServerID  string    `json:"washServerID"`
 }
 
 type WithdrawalSuccess struct {
-	StationsСount int       `json:"stationsСount"`
+	StationsCount int       `json:"stationsCount"`
 	Service       string    `json:"service"`
 	ForDate       time.Time `json:"forDate"`
 	WashServerID  string    `json:"washServerID"`
 }
 
 type WithdrawalFailure struct {
-	StationsСount int       `json:"stationsСount"`
+	StationsCount int       `json:"stationsCount"`
 	Service       string    `json:"service"`
 	ForDate       time.Time `json:"forDate"`
 	WashServerID  string    `json:"washServerID"`

@@ -59,10 +59,10 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 	createAt := strfmt.DateTime(transaction.CreatedAt)
 	service := serviceToRest(transaction.Service)
 
-	var stationsСount *int64 = nil
-	if transaction.StationsСount != nil {
-		sc := int64(*transaction.StationsСount)
-		stationsСount = &sc
+	var stationsCount *int64 = nil
+	if transaction.StationsCount != nil {
+		sc := int64(*transaction.StationsCount)
+		stationsCount = &sc
 	}
 
 	var group *models.Group = nil
@@ -86,7 +86,7 @@ func TransactionToRest(transaction entity.Transaction) models.Transaction {
 		Amount:         &transaction.Amount,
 		Sevice:         &service,
 		UserID:         transaction.UserID,
-		StationsСount:  stationsСount,
+		StationsCount:  stationsCount,
 		Group:          group,
 		WashServer:     washServer,
 	}

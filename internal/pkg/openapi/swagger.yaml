@@ -339,7 +339,7 @@ definitions:
         $ref: "#/definitions/Group"
       washServer:
         $ref: "#/definitions/WashServer"
-      stationsСount:
+      stationsCount:
         description: Number of stations in the car wash that requested payment for using of the service
         x-nullable: true
         type: integer

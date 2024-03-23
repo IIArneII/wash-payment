@@ -102,7 +102,7 @@ func (svc *rabbitService) processMessage(d rabbitmq.Delivery) rabbitmq.Action {
 			_ = svc.SendMessage(withdrawalFailureMsg(msg, err), entity.PaymentExchange, d.ReplyTo, entity.WithdrawalFailureMessageType)
 			return rabbitmq.NackDiscard
 		}
-		svc.l.Info("Отправка ответа об успехеcls")
+		svc.l.Info("Отправка ответа об уcпехеcls")
 		err = svc.SendMessage(withdrawalMsg(msg), entity.PaymentExchange, d.ReplyTo, entity.WithdrawalSuccessMessageType)
 		if err != nil {
 			svc.l.Info(err)
@@ -145,7 +145,7 @@ func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, 
 func withdrawalFailureMsg(withdrawal entity.Withdrawal, err error) entity.WithdrawalFailure {
 	return entity.WithdrawalFailure{
 		Service:       withdrawal.Service,
-		StationsСount: withdrawal.StationsСount,
+		StationsCount: withdrawal.StationsCount,
 		ForDate:       withdrawal.ForDate,
 		Error:         err.Error(),
 	}
@@ -154,7 +154,7 @@ func withdrawalFailureMsg(withdrawal entity.Withdrawal, err error) entity.Withdr
 func withdrawalMsg(withdrawal entity.Withdrawal) entity.WithdrawalSuccess {
 	return entity.WithdrawalSuccess{
 		Service:       withdrawal.Service,
-		StationsСount: withdrawal.StationsСount,
+		StationsCount: withdrawal.StationsCount,
 		ForDate:       withdrawal.ForDate,
 	}
 }

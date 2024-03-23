@@ -15,7 +15,7 @@ type (
 		CreatedAt      time.Time  `db:"t_created_at"`
 		ForDate        *time.Time `db:"t_for_date"`
 		Service        Service    `db:"t_service"`
-		StationsСount  *int       `db:"t_stations_count"`
+		StationsCount  *int       `db:"t_stations_count"`
 		UserID         *string    `db:"t_user_id"`
 
 		GroupID             uuid.NullUUID `db:"g_id"`
@@ -42,7 +42,7 @@ type (
 		CreatedAt      time.Time     `db:"created_at"`
 		ForDate        *time.Time    `db:"for_date"`
 		Service        Service       `db:"service"`
-		StationsСount  *int          `db:"stations_count"`
+		StationsCount  *int          `db:"stations_count"`
 		UserID         *string       `db:"user_id"`
 		WashServerID   uuid.NullUUID `db:"wash_server_id"`
 	}

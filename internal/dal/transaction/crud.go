@@ -103,7 +103,7 @@ func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transac
 	}
 	defer tx.RollbackUnlessCommitted()
 
-	currentBalance, err := getСurrentBalance(ctx, tx, transaction.OrganizationID)
+	currentBalance, err := getCurrentBalance(ctx, tx, transaction.OrganizationID)
 	if err != nil {
 		return entity.Transaction{}, fmt.Errorf(op, err)
 	}
@@ -192,7 +192,7 @@ func changeOrganizationBalance(ctx context.Context, tx *dbr.Tx, organizationID u
 	return nil
 }
 
-func getСurrentBalance(ctx context.Context, tx *dbr.Tx, organizationID uuid.UUID) (int64, error) {
+func getCurrentBalance(ctx context.Context, tx *dbr.Tx, organizationID uuid.UUID) (int64, error) {
 	op := "failed to get current balance: %w"
 
 	var balance int64

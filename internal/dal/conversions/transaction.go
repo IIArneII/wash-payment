@@ -39,7 +39,7 @@ func TransactionFromDB(transaction dbmodels.Transaction) entity.Transaction {
 		ForDate:        transaction.ForDate,
 		Service:        ServiceFromDb(transaction.Service),
 		Operation:      OperationFromDb(transaction.Operation),
-		StationsСount:  transaction.StationsСount,
+		StationsCount:  transaction.StationsCount,
 		UserID:         transaction.UserID,
 		Group:          GroupFromTransactionDB(transaction),
 		WashServer:     WashServerFromTransactionDB(transaction),
@@ -80,7 +80,7 @@ func TransactionCreateToDB(transaction entity.TransactionCreate) dbmodels.Transa
 		ForDate:        forDate,
 		Service:        ServiceToDb(transaction.Service),
 		Operation:      OperationToDb(transaction.Operation),
-		StationsСount:  transaction.StationsСount,
+		StationsCount:  transaction.StationsCount,
 		UserID:         transaction.UserID,
 		WashServerID:   washServerID,
 	}

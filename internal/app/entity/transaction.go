@@ -15,7 +15,7 @@ type (
 		CreatedAt      time.Time
 		ForDate        *time.Time
 		Service        Service
-		StationsСount  *int
+		StationsCount  *int
 		UserID         *string
 		Group          *Group
 		WashServer     *WashServer
@@ -29,14 +29,14 @@ type (
 		CreatedAt      time.Time
 		ForDate        *time.Time
 		Service        Service
-		StationsСount  *int
+		StationsCount  *int
 		UserID         *string
 		GroupID        *uuid.UUID
 		WashServerID   *uuid.UUID
 	}
 
 	Withdrawal struct {
-		StationsСount int
+		StationsCount int
 		ForDate       time.Time
 		Service       Service
 		WashServerID  uuid.UUID

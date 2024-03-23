@@ -70,7 +70,7 @@ func (s *transactionService) Deposit(ctx context.Context, auth entity.Auth, orga
 }
 
 func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.Withdrawal) error {
-	if withdrawal.StationsСount <= 0 {
+	if withdrawal.StationsCount <= 0 {
 		return app.ErrBadValue
 	}
 
@@ -98,7 +98,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		return app.ErrNotFound
 	}
 
-	amount := int64(withdrawal.StationsСount) * getPrice(organizationDB.ServicePrices, withdrawal.Service)
+	amount := int64(withdrawal.StationsCount) * getPrice(organizationDB.ServicePrices, withdrawal.Service)
 	if amount > organizationDB.Balance {
 		return app.ErrInsufficientFunds
 	}
@@ -114,7 +114,7 @@ func (s *transactionService) Withdrawal(ctx context.Context, withdrawal entity.W
 		CreatedAt:      time.Now().UTC(),
 		Service:        withdrawal.Service,
 		ForDate:        &forDate,
-		StationsСount:  &withdrawal.StationsСount,
+		StationsCount:  &withdrawal.StationsCount,
 		WashServerID:   &washServerDB.ID,
 	})
 	if err != nil {

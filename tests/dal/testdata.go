@@ -90,7 +90,7 @@ func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID s
 }
 
 func generateTransactionDebit(amount int64, organizationID uuid.UUID, group entity.Group, washServer entity.WashServer) (entity.TransactionCreate, entity.Transaction) {
-	stationsСount := 5
+	stationsCount := 5
 	forDate := time.Now().UTC().Truncate(24 * time.Hour)
 	transactionCreate := entity.TransactionCreate{
 		ID:             uuid.NewV4(),
@@ -102,7 +102,7 @@ func generateTransactionDebit(amount int64, organizationID uuid.UUID, group enti
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
 		ForDate:        &forDate,
 		Service:        entity.BonusService,
-		StationsСount:  &stationsСount,
+		StationsCount:  &stationsCount,
 	}
 
 	transaction := entity.Transaction{
@@ -113,7 +113,7 @@ func generateTransactionDebit(amount int64, organizationID uuid.UUID, group enti
 		CreatedAt:      transactionCreate.CreatedAt,
 		ForDate:        transactionCreate.ForDate,
 		Service:        transactionCreate.Service,
-		StationsСount:  transactionCreate.StationsСount,
+		StationsCount:  transactionCreate.StationsCount,
 		Group:          &group,
 		WashServer:     &washServer,
 	}
