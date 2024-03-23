@@ -492,7 +492,7 @@ func init() {
         "sevice": {
           "$ref": "#/definitions/Service"
         },
-        "stationsСount": {
+        "stationsCount": {
           "description": "Number of stations in the car wash that requested payment for using of the service",
           "type": "integer",
           "minimum": 1,
@@ -1121,7 +1121,7 @@ func init() {
         "sevice": {
           "$ref": "#/definitions/Service"
         },
-        "stationsСount": {
+        "stationsCount": {
           "description": "Number of stations in the car wash that requested payment for using of the service",
           "type": "integer",
           "minimum": 1,

@@ -58,7 +58,7 @@ type Transaction struct {
 
 	// Number of stations in the car wash that requested payment for using of the service
 	// Minimum: 1
-	StationsСount *int64 `json:"stationsСount,omitempty"`
+	StationsCount *int64 `json:"stationsCount,omitempty"`
 
 	// The user who credited the organisation's account
 	UserID *string `json:"userId,omitempty"`
@@ -108,7 +108,7 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 
 		// Number of stations in the car wash that requested payment for using of the service
 		// Minimum: 1
-		StationsСount *int64 `json:"stationsСount,omitempty"`
+		StationsCount *int64 `json:"stationsCount,omitempty"`
 
 		// The user who credited the organisation's account
 		UserID *string `json:"userId,omitempty"`
@@ -131,7 +131,7 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 	m.Operation = props.Operation
 	m.OrganizationID = props.OrganizationID
 	m.Sevice = props.Sevice
-	m.StationsСount = props.StationsСount
+	m.StationsCount = props.StationsCount
 	m.UserID = props.UserID
 	m.WashServer = props.WashServer
 	return nil
@@ -173,7 +173,7 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateStationsСount(formats); err != nil {
+	if err := m.validateStationsCount(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -318,12 +318,12 @@ func (m *Transaction) validateSevice(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Transaction) validateStationsСount(formats strfmt.Registry) error {
-	if swag.IsZero(m.StationsСount) { // not required
+func (m *Transaction) validateStationsCount(formats strfmt.Registry) error {
+	if swag.IsZero(m.StationsCount) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("stationsСount", "body", *m.StationsСount, 1, false); err != nil {
+	if err := validate.MinimumInt("stationsCount", "body", *m.StationsCount, 1, false); err != nil {
 		return err
 	}
 
