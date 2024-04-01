@@ -14,11 +14,12 @@ type transactionService struct {
 	transactionRepo  app.TransactionRepo
 }
 
-func NewService(l *zap.SugaredLogger, organizationRepo app.OrganizationRepo, transactionRepo app.TransactionRepo, groupRepo app.GroupRepo) app.TransactionService {
+func NewService(l *zap.SugaredLogger, organizationRepo app.OrganizationRepo, transactionRepo app.TransactionRepo, groupRepo app.GroupRepo, washServerRepo app.WashServerRepo) app.TransactionService {
 	return &transactionService{
 		l:                l,
 		transactionRepo:  transactionRepo,
 		organizationRepo: organizationRepo,
 		groupRepo:        groupRepo,
+		washserverRepo:   washServerRepo,
 	}
 }

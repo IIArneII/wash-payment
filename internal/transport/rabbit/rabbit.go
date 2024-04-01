@@ -103,6 +103,7 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WithdrawalRequestQueue)),
 		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
+		rabbitmq.WithConsumerOptionsQueueArgs(rabbitmq.Table{amqp.QueueMessageTTLArg: 30 * 1000}),
 	)
 	if err != nil {
 		return nil, err
