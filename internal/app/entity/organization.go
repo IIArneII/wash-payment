@@ -31,5 +31,6 @@ type (
 
 	OrganizationFilter struct {
 		Filter
+		IDs []uuid.UUID
 	}
 )

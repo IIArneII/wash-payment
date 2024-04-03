@@ -43,17 +43,15 @@ paths:
       security:
         - authKey: []
       parameters:
-        - name: page
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/pageSize'
+        - name: ids
           in: query
-          type: integer
-          default: 1
-          minimum: 1
-        - name: pageSize
-          in: query
-          type: integer
-          default: 10
-          maximum: 100
-          minimum: 1
+          collectionFormat: multi
+          type: array
+          items:
+            type: string
+            format: uuid
       responses:
         200:
           description: OK
@@ -140,7 +138,6 @@ paths:
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
 
-
   /organizations/{id}/transactions:
     get:
       tags:
@@ -156,17 +153,24 @@ paths:
           required: true
           type: string
           format: uuid
-        - name: page
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/pageSize'
+        - name: operation
           in: query
-          type: integer
-          default: 1
-          minimum: 1
-        - name: pageSize
+          type: string
+          enum: ["deposit", "debit"]
+        - name: service
           in: query
-          type: integer
-          default: 10
-          maximum: 100
-          minimum: 1
+          type: string
+          enum: ["payment", "bonus", "sbp"]
+        - name: groupId
+          in: query
+          type: string
+          format: uuid
+        - name: washServerId
+          in: query
+          type: string
+          format: uuid
       responses:
         200:
           description: OK
@@ -175,6 +179,22 @@ paths:
         403: {$ref: '#/responses/Forbidden'}
         404: {$ref: '#/responses/NotFound'}
         default: {$ref: '#/responses/InternalError'}
+
+parameters:  
+  page:
+    name: page
+    in: query
+    type: integer
+    default: 1
+    minimum: 1
+  
+  pageSize:
+    name: pageSize
+    in: query
+    type: integer
+    default: 10
+    maximum: 100
+    minimum: 1
 
 responses:
   BadRequest:
@@ -304,6 +324,18 @@ definitions:
       - title
       - deleted
   
+  User:
+    description: The user who credited the organisation's account
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    required:
+      - id
+      - name
+  
   OrganizationPage:
     type: object
     properties:
@@ -339,15 +371,13 @@ definitions:
         $ref: "#/definitions/Group"
       washServer:
         $ref: "#/definitions/WashServer"
+      user:
+        $ref: "#/definitions/User"
       stationsCount:
         description: Number of stations in the car wash that requested payment for using of the service
         x-nullable: true
         type: integer
         minimum: 1
-      userId:
-        description: The user who credited the organisation's account
-        x-nullable: true
-        type: string
       createdAt:
         type: string
         format: date-time

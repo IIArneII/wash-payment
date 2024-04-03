@@ -16,8 +16,8 @@ type (
 		ForDate        *time.Time
 		Service        Service
 		StationsCount  *int
-		UserID         *string
 		Group          *Group
+		User           User
 		WashServer     *WashServer
 	}
 
@@ -45,6 +45,10 @@ type (
 	TransactionFilter struct {
 		Filter
 		OrganizationID uuid.UUID
+		Operation      *Operation
+		Service        *Service
+		GroupID        *uuid.UUID
+		WashServerID   *uuid.UUID
 	}
 
 	Service   string
