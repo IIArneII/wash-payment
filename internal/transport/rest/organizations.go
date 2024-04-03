@@ -63,12 +63,13 @@ func (svc *service) list(params organizations.ListParams, profile *entity.Auth) 
 	op := "List organizations: "
 	resp := organizations.NewListDefault(http.StatusInternalServerError)
 
-	org, err := svc.services.OrganizationService.List(params.HTTPRequest.Context(), *profile, entity.OrganizationFilter{
-		Filter: entity.Filter{
-			Page:     int(*params.Page),
-			PageSize: int(*params.PageSize),
-		},
-	})
+	filter, err := conversions.OrganizationsFilterFromRest(params)
+	if err != nil {
+		setAPIError(svc.l, op, err, resp)
+		return resp
+	}
+
+	org, err := svc.services.OrganizationService.List(params.HTTPRequest.Context(), *profile, filter)
 	if err != nil {
 		setAPIError(svc.l, op, err, resp)
 		return resp
@@ -82,19 +83,13 @@ func (svc *service) transactions(params organizations.TransactionsParams, profil
 	op := "Transactions organizations: "
 	resp := organizations.NewTransactionsDefault(http.StatusInternalServerError)
 
-	id, err := uuid.FromString(params.ID.String())
+	filter, err := conversions.TransactionsFilterFromRest(params)
 	if err != nil {
-		setAPIError(svc.l, op, fmt.Errorf("wrong organization ID: %w", app.ErrBadRequest), resp)
+		setAPIError(svc.l, op, err, resp)
 		return resp
 	}
 
-	txs, err := svc.services.TransactionService.List(params.HTTPRequest.Context(), *profile, entity.TransactionFilter{
-		Filter: entity.Filter{
-			Page:     int(*params.Page),
-			PageSize: int(*params.PageSize),
-		},
-		OrganizationID: id,
-	})
+	txs, err := svc.services.TransactionService.List(params.HTTPRequest.Context(), *profile, filter)
 	if err != nil {
 		setAPIError(svc.l, op, err, resp)
 		return resp

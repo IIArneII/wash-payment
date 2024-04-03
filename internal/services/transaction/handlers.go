@@ -19,7 +19,7 @@ func (s *transactionService) List(ctx context.Context, auth entity.Auth, filter 
 			return entity.Page[entity.Transaction]{}, app.ErrForbidden
 		}
 
-		if auth.User.OrganizationID != &filter.OrganizationID {
+		if *auth.User.OrganizationID != filter.OrganizationID {
 			return entity.Page[entity.Transaction]{}, app.ErrForbidden
 		}
 	}
@@ -30,6 +30,39 @@ func (s *transactionService) List(ctx context.Context, auth entity.Auth, filter 
 	}
 	if org.Deleted {
 		return entity.Page[entity.Transaction]{}, app.ErrNotFound
+	}
+
+	if filter.GroupID != nil {
+		group, err := s.groupRepo.Get(ctx, *filter.GroupID)
+		if err != nil {
+			return entity.Page[entity.Transaction]{}, err
+		}
+		if group.Deleted {
+			return entity.Page[entity.Transaction]{}, app.ErrNotFound
+		}
+		if auth.User.Role == entity.AdminRole && *auth.User.OrganizationID != group.OrganizationID {
+			return entity.Page[entity.Transaction]{}, app.ErrForbidden
+		}
+	}
+
+	if filter.WashServerID != nil {
+		wash, err := s.washserverRepo.Get(ctx, *filter.WashServerID)
+		if err != nil {
+			return entity.Page[entity.Transaction]{}, err
+		}
+		if wash.Deleted {
+			return entity.Page[entity.Transaction]{}, app.ErrNotFound
+		}
+		group, err := s.groupRepo.Get(ctx, wash.GroupID)
+		if err != nil {
+			return entity.Page[entity.Transaction]{}, err
+		}
+		if group.Deleted {
+			return entity.Page[entity.Transaction]{}, app.ErrNotFound
+		}
+		if auth.User.Role == entity.AdminRole && *auth.User.OrganizationID != group.OrganizationID {
+			return entity.Page[entity.Transaction]{}, app.ErrForbidden
+		}
 	}
 
 	txs, err := s.transactionRepo.List(ctx, filter)

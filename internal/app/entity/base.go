@@ -8,8 +8,8 @@ type (
 	}
 
 	Filter struct {
-		Page     int
-		PageSize int
+		page     int
+		pageSize int
 	}
 
 	Page[T any] struct {
@@ -24,17 +24,35 @@ type (
 func NewPage[T any](items []T, filter Filter, totalItems int) Page[T] {
 	return Page[T]{
 		Items:      items,
-		TotalPages: int(math.Ceil((float64(totalItems) / float64(filter.PageSize)))),
-		Page:       filter.Page,
-		PageSize:   filter.PageSize,
+		TotalPages: int(math.Ceil((float64(totalItems) / float64(filter.pageSize)))),
+		Page:       filter.page,
+		PageSize:   filter.pageSize,
 		TotalItems: totalItems,
 	}
 }
 
-func (f *Filter) Offset() int {
-	return (f.Page - 1) * f.PageSize
+func NewFilter(page int, pageSize int) Filter {
+	filter := Filter{
+		page:     1,
+		pageSize: 10,
+	}
+
+	if page > 1 {
+		filter.page = page
+	}
+	if pageSize >= 1 && pageSize <= 100 {
+		filter.pageSize = pageSize
+	} else if pageSize > 100 {
+		filter.pageSize = 100
+	}
+
+	return filter
 }
 
-func (f *Filter) Limit() int {
-	return f.PageSize
+func (f Filter) Page() int {
+	return f.page
+}
+
+func (f Filter) PageSize() int {
+	return f.pageSize
 }

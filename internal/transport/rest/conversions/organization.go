@@ -3,8 +3,10 @@ package conversions
 import (
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/pkg/openapi/models"
+	"wash-payment/internal/pkg/openapi/restapi/operations/organizations"
 
 	"github.com/go-openapi/strfmt"
+	uuid "github.com/satori/go.uuid"
 )
 
 func ServicePricesToRest(appServicePrices entity.ServicePrices) models.ServicePrices {
@@ -51,4 +53,23 @@ func OrganizationsToRest(appOrganizations entity.Page[entity.Organization]) *mod
 		TotalPages: &totalPages,
 		TotalItems: &totalItems,
 	}
+}
+
+func OrganizationsFilterFromRest(params organizations.ListParams) (entity.OrganizationFilter, error) {
+	var ids []uuid.UUID
+	if params.Ids != nil {
+		ids = []uuid.UUID{}
+		for _, v := range params.Ids {
+			id, err := uuid.FromString(string(v))
+			if err != nil {
+				return entity.OrganizationFilter{}, err
+			}
+			ids = append(ids, id)
+		}
+	}
+
+	return entity.OrganizationFilter{
+		Filter: entity.NewFilter(int(*params.Page), int(*params.PageSize)),
+		IDs:    ids,
+	}, nil
 }

@@ -7,6 +7,37 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+func UserFromTransactionDB(transaction dbmodels.Transaction) *entity.User {
+	if transaction.UserID == nil {
+		return nil
+	}
+	var orgId *uuid.UUID
+	if transaction.UserOrganizationID.Valid {
+		orgId = &transaction.UserOrganizationID.UUID
+	}
+	var name string
+	if transaction.UserName != nil {
+		name = *transaction.UserName
+	}
+	var email string
+	if transaction.UserEmail != nil {
+		email = *transaction.UserEmail
+	}
+	var version int64
+	if transaction.UserVersion != nil {
+		version = *transaction.UserVersion
+	}
+
+	return &entity.User{
+		ID:             *transaction.UserID,
+		OrganizationID: orgId,
+		Name:           name,
+		Email:          email,
+		Version:        version,
+		Role:           RoleFromDB(*transaction.UserRole),
+	}
+}
+
 func UserFromDB(dbUser dbmodels.User) entity.User {
 	var orgID *uuid.UUID
 	if dbUser.OrganizationID.Valid {

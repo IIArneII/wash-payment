@@ -5,6 +5,7 @@ import (
 	"wash-payment/internal/app/entity"
 	"wash-payment/internal/dal/dbmodels"
 
+	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -40,9 +41,9 @@ func TransactionFromDB(transaction dbmodels.Transaction) entity.Transaction {
 		Service:        ServiceFromDb(transaction.Service),
 		Operation:      OperationFromDb(transaction.Operation),
 		StationsCount:  transaction.StationsCount,
-		UserID:         transaction.UserID,
 		Group:          GroupFromTransactionDB(transaction),
 		WashServer:     WashServerFromTransactionDB(transaction),
+		User:           UserFromTransactionDB(transaction),
 	}
 }
 
@@ -84,4 +85,15 @@ func TransactionCreateToDB(transaction entity.TransactionCreate) dbmodels.Transa
 		UserID:         transaction.UserID,
 		WashServerID:   washServerID,
 	}
+}
+
+func TransactionFilterIds(ids []uuid.UUID) pq.StringArray {
+	if ids == nil {
+		return nil
+	}
+	pqIds := []string{}
+	for _, id := range ids {
+		pqIds = append(pqIds, id.String())
+	}
+	return pqIds
 }

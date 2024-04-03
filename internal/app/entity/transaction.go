@@ -17,7 +17,7 @@ type (
 		Service        Service
 		StationsCount  *int
 		Group          *Group
-		User           User
+		User           *User
 		WashServer     *WashServer
 	}
 

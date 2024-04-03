@@ -65,14 +65,14 @@ func generateWashServer(groupID uuid.UUID, version int) entity.WashServer {
 	}
 }
 
-func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID string) (entity.TransactionCreate, entity.Transaction) {
+func generateTransactionDeposit(amount int64, organizationID uuid.UUID, user entity.User) (entity.TransactionCreate, entity.Transaction) {
 	transactionCreate := entity.TransactionCreate{
 		ID:             uuid.NewV4(),
 		OrganizationID: organizationID,
 		Amount:         amount,
 		Operation:      entity.DepositOperation,
 		CreatedAt:      time.Now().UTC().Truncate(time.Millisecond),
-		UserID:         &userID,
+		UserID:         &user.ID,
 		Service:        entity.PaymentService,
 	}
 
@@ -82,7 +82,7 @@ func generateTransactionDeposit(amount int64, organizationID uuid.UUID, userID s
 		Amount:         transactionCreate.Amount,
 		Operation:      transactionCreate.Operation,
 		CreatedAt:      transactionCreate.CreatedAt,
-		UserID:         transactionCreate.UserID,
+		User:           &user,
 		Service:        transactionCreate.Service,
 	}
 

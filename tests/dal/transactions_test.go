@@ -21,7 +21,7 @@ func TestCreateTransaction(tt *testing.T) {
 	group := generateGroup(organization.ID, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
 	washServer := generateWashServer(group.ID, 1)
-	transactionCreate1, transaction1 := generateTransactionDeposit(amount, organization.ID, user.ID)
+	transactionCreate1, transaction1 := generateTransactionDeposit(amount, organization.ID, user)
 	transactionCreate2, transaction2 := generateTransactionDebit(amount, organization.ID, group, washServer)
 	transactionCreate3, _ := generateTransactionDebit(100000, organization.ID, group, washServer)
 	transactionCreate4, _ := generateTransactionDebit(100000, uuid.NewV4(), group, washServer)
@@ -77,8 +77,8 @@ func TestGetTransaction(tt *testing.T) {
 
 	organization := generateOrganization(10000, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
-	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization.ID, user.ID)
-	_, transaction2 := generateTransactionDeposit(100, organization.ID, user.ID)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization.ID, user)
+	_, transaction2 := generateTransactionDeposit(100, organization.ID, user)
 
 	_, err = repositories.OrganizationRepo.Create(ctx, organization)
 	t.Nil(err)
@@ -106,8 +106,8 @@ func TestListTransaction(tt *testing.T) {
 	var organization1 = generateOrganization(10000, 1)
 	var organization2 = generateOrganization(10000, 1)
 	user := generateUser(entity.AdminRole, nil, 1)
-	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization1.ID, user.ID)
-	transactionCreate2, transaction2 := generateTransactionDeposit(100, organization1.ID, user.ID)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization1.ID, user)
+	transactionCreate2, transaction2 := generateTransactionDeposit(100, organization1.ID, user)
 	transaction2.CreatedAt = transaction2.CreatedAt.Add(time.Second)
 	transactionCreate2.CreatedAt = transactionCreate2.CreatedAt.Add(time.Second)
 
@@ -126,15 +126,12 @@ func TestListTransaction(tt *testing.T) {
 
 	filter := entity.TransactionFilter{
 		OrganizationID: organization1.ID,
-		Filter: entity.Filter{
-			Page:     1,
-			PageSize: 10,
-		},
+		Filter:         entity.NewFilter(1, 10),
 	}
 	list, err := repositories.TransactionRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 1)
 	t.Equal(len(list.Items), 2)
@@ -146,30 +143,24 @@ func TestListTransaction(tt *testing.T) {
 
 	filter = entity.TransactionFilter{
 		OrganizationID: organization1.ID,
-		Filter: entity.Filter{
-			Page:     10,
-			PageSize: 10,
-		},
+		Filter:         entity.NewFilter(10, 10),
 	}
 	list, err = repositories.TransactionRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 1)
 	t.DeepEqual(list.Items, []entity.Transaction{})
 
 	filter = entity.TransactionFilter{
 		OrganizationID: organization1.ID,
-		Filter: entity.Filter{
-			Page:     1,
-			PageSize: 1,
-		},
+		Filter:         entity.NewFilter(1, 1),
 	}
 	list, err = repositories.TransactionRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 2)
 	t.Equal(len(list.Items), 1)
@@ -179,15 +170,12 @@ func TestListTransaction(tt *testing.T) {
 
 	filter = entity.TransactionFilter{
 		OrganizationID: organization1.ID,
-		Filter: entity.Filter{
-			Page:     2,
-			PageSize: 1,
-		},
+		Filter:         entity.NewFilter(2, 1),
 	}
 	list, err = repositories.TransactionRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 2)
 	t.Equal(len(list.Items), 1)
@@ -197,15 +185,12 @@ func TestListTransaction(tt *testing.T) {
 
 	filter = entity.TransactionFilter{
 		OrganizationID: organization2.ID,
-		Filter: entity.Filter{
-			Page:     1,
-			PageSize: 10,
-		},
+		Filter:         entity.NewFilter(1, 10),
 	}
 	list, err = repositories.TransactionRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 0)
 	t.Equal(list.TotalPages, 0)
 	t.DeepEqual(list.Items, []entity.Transaction{})

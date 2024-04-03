@@ -16,7 +16,6 @@ type (
 		ForDate        *time.Time `db:"t_for_date"`
 		Service        Service    `db:"t_service"`
 		StationsCount  *int       `db:"t_stations_count"`
-		UserID         *string    `db:"t_user_id"`
 
 		GroupID             uuid.NullUUID `db:"g_id"`
 		GroupOrganizationID uuid.NullUUID `db:"g_organization_id"`
@@ -31,6 +30,13 @@ type (
 		WashServerGroupID     uuid.NullUUID `db:"ws_group_id"`
 		WashServerVersion     *int64        `db:"ws_version"`
 		WashServerDeleted     *bool         `db:"ws_deleted"`
+
+		UserID             *string       `db:"u_id"`
+		UserEmail          *string       `db:"u_email"`
+		UserName           *string       `db:"u_name"`
+		UserRole           *Role         `db:"u_role"`
+		UserOrganizationID uuid.NullUUID `db:"u_organization_id"`
+		UserVersion        *int64        `db:"u_version"`
 	}
 
 	TransactionCreate struct {

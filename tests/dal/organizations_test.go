@@ -115,51 +115,57 @@ func TestListOrganization(tt *testing.T) {
 	_, err = repositories.OrganizationRepo.Create(ctx, organization2)
 	t.Nil(err)
 
-	filter := entity.OrganizationFilter{Filter: entity.Filter{
-		Page:     1,
-		PageSize: 10,
-	}}
+	filter := entity.OrganizationFilter{Filter: entity.NewFilter(1, 10)}
 	list, err := repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 1)
 	t.DeepEqual(list.Items, []entity.Organization{organization1, organization2})
 
-	filter = entity.OrganizationFilter{Filter: entity.Filter{
-		Page:     10,
-		PageSize: 10,
-	}}
+	filter = entity.OrganizationFilter{Filter: entity.NewFilter(10, 10)}
 	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 1)
 	t.DeepEqual(list.Items, []entity.Organization{})
 
-	filter = entity.OrganizationFilter{Filter: entity.Filter{
-		Page:     1,
-		PageSize: 1,
-	}}
+	filter = entity.OrganizationFilter{Filter: entity.NewFilter(1, 1)}
 	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 2)
 	t.DeepEqual(list.Items, []entity.Organization{organization1})
 
-	filter = entity.OrganizationFilter{Filter: entity.Filter{
-		Page:     2,
-		PageSize: 1,
-	}}
+	filter = entity.OrganizationFilter{Filter: entity.NewFilter(2, 1)}
 	list, err = repositories.OrganizationRepo.List(ctx, filter)
 	t.Nil(err)
-	t.Equal(list.Page, filter.Page)
-	t.Equal(list.PageSize, filter.PageSize)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
 	t.Equal(list.TotalItems, 2)
 	t.Equal(list.TotalPages, 2)
 	t.DeepEqual(list.Items, []entity.Organization{organization2})
+
+	filter = entity.OrganizationFilter{Filter: entity.NewFilter(1, 10), IDs: []uuid.UUID{organization2.ID}}
+	list, err = repositories.OrganizationRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 1)
+	t.Equal(list.TotalPages, 1)
+	t.DeepEqual(list.Items, []entity.Organization{organization2})
+
+	filter = entity.OrganizationFilter{Filter: entity.NewFilter(1, 10), IDs: []uuid.UUID{organization1.ID}}
+	list, err = repositories.OrganizationRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 1)
+	t.Equal(list.TotalPages, 1)
+	t.DeepEqual(list.Items, []entity.Organization{organization1})
 }

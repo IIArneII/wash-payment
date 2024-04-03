@@ -51,25 +51,29 @@ func (r *organizationRepo) List(ctx context.Context, filter entity.OrganizationF
 	op := "failed to get organizations list: %w"
 
 	var count int
-	err := r.db.NewSession(nil).
+	query := r.db.NewSession(nil).
 		Select(dbmodels.CountSelect).
 		From(dbmodels.OrganizationsTable).
-		Where("NOT deleted").
-		LoadOneContext(ctx, &count)
+		Where("NOT deleted")
 
+	query = buildFilter(query, filter)
+
+	err := query.LoadOneContext(ctx, &count)
 	if err != nil {
 		return entity.Page[entity.Organization]{}, fmt.Errorf(op, err)
 	}
 
 	var dbOrganizations []dbmodels.Organization
-	_, err = r.db.NewSession(nil).
+	query = r.db.NewSession(nil).
 		Select(selectColumns...).
 		From(dbmodels.OrganizationsTable).
 		Where("NOT deleted").
 		OrderAsc("name").
-		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
-		LoadContext(ctx, &dbOrganizations)
+		Paginate(uint64(filter.Page()), uint64(filter.PageSize()))
 
+	query = buildFilter(query, filter)
+
+	_, err = query.LoadContext(ctx, &dbOrganizations)
 	if err != nil {
 		return entity.Page[entity.Organization]{}, fmt.Errorf(op, err)
 	}
@@ -143,4 +147,11 @@ func (r *organizationRepo) Update(ctx context.Context, organizationID uuid.UUID,
 	}
 
 	return r.Get(ctx, organizationID)
+}
+
+func buildFilter(query *dbr.SelectStmt, filter entity.OrganizationFilter) *dbr.SelectStmt {
+	if filter.IDs != nil {
+		query.Where("id = ANY(?)", conversions.TransactionFilterIds(filter.IDs))
+	}
+	return query
 }

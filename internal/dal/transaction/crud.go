@@ -24,7 +24,6 @@ var selectColumns = []string{
 	"t.for_date AS t_for_date",
 	"t.service AS t_service",
 	"t.stations_count AS t_stations_count",
-	"t.user_id AS t_user_id",
 	"g.id AS g_id",
 	"g.organization_id AS g_organization_id",
 	"g.name AS g_name",
@@ -37,6 +36,12 @@ var selectColumns = []string{
 	"ws.group_id AS ws_group_id",
 	"ws.version AS ws_version",
 	"ws.deleted AS ws_deleted",
+	"u.id AS u_id",
+	"u.email AS u_email",
+	"u.name AS u_name",
+	"u.role AS u_role",
+	"u.organization_id AS u_organization_id",
+	"u.version AS u_version",
 }
 
 func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (entity.Transaction, error) {
@@ -48,6 +53,7 @@ func (r *transactionRepo) Get(ctx context.Context, transactionID uuid.UUID) (ent
 		From(dbr.I(dbmodels.TransactionsTable).As("t")).
 		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
 		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
+		LeftJoin(dbr.I(dbmodels.UsersTable).As("u"), "t.user_id = u.id").
 		Where("t.id = ?", transactionID).
 		LoadOneContext(ctx, &dbTransaction)
 
@@ -66,27 +72,30 @@ func (r *transactionRepo) List(ctx context.Context, filter entity.TransactionFil
 	op := "failed to get transactions list: %w"
 
 	var count int
-	err := r.db.NewSession(nil).
+	query := r.db.NewSession(nil).
 		Select(dbmodels.CountSelect).
-		From(dbmodels.TransactionsTable).
-		Where("organization_id = ?", filter.OrganizationID).
-		LoadOneContext(ctx, &count)
+		From(dbr.I(dbmodels.TransactionsTable).As("t"))
 
+	query = buildFilter(query, filter)
+
+	err := query.LoadOneContext(ctx, &count)
 	if err != nil {
 		return entity.Page[entity.Transaction]{}, fmt.Errorf(op, err)
 	}
 
 	var dbTransaction []dbmodels.Transaction
-	_, err = r.db.NewSession(nil).
+	query = r.db.NewSession(nil).
 		Select(selectColumns...).
 		From(dbr.I(dbmodels.TransactionsTable).As("t")).
 		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
 		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
-		Where("t.organization_id = ?", filter.OrganizationID).
+		LeftJoin(dbr.I(dbmodels.UsersTable).As("u"), "t.user_id = u.id").
 		OrderDesc("t.created_at").
-		Paginate(uint64(filter.Page), uint64(filter.PageSize)).
-		LoadContext(ctx, &dbTransaction)
+		Paginate(uint64(filter.Page()), uint64(filter.PageSize()))
 
+	query = buildFilter(query, filter)
+
+	_, err = query.LoadContext(ctx, &dbTransaction)
 	if err != nil {
 		return entity.Page[entity.Transaction]{}, fmt.Errorf(op, err)
 	}
@@ -132,7 +141,7 @@ func (r *transactionRepo) Create(ctx context.Context, transaction entity.Transac
 }
 
 func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.TransactionCreate) (dbmodels.Transaction, error) {
-	op := "failed to create transaction: %w"
+	op := "failed to create transaction record: %w"
 
 	_, err := tx.
 		InsertInto(dbmodels.TransactionsTable).
@@ -154,6 +163,7 @@ func createTransaction(ctx context.Context, tx *dbr.Tx, transaction dbmodels.Tra
 		From(dbr.I(dbmodels.TransactionsTable).As("t")).
 		LeftJoin(dbr.I(dbmodels.GroupsTable).As("g"), "t.group_id = g.id").
 		LeftJoin(dbr.I(dbmodels.WashServersTable).As("ws"), "t.wash_server_id = ws.id").
+		LeftJoin(dbr.I(dbmodels.UsersTable).As("u"), "t.user_id = u.id").
 		Where("t.id = ?", transaction.ID).
 		LoadOneContext(ctx, &dbTransaction)
 
@@ -222,4 +232,23 @@ func getNewBalance(balance int64, amount int64, operation entity.Operation) int6
 	default:
 		panic("Unknown transaction operation: " + operation)
 	}
+}
+
+func buildFilter(query *dbr.SelectStmt, filter entity.TransactionFilter) *dbr.SelectStmt {
+	query.Where("t.organization_id = ?", filter.OrganizationID)
+
+	if filter.Operation != nil {
+		query.Where("t.operation = ?", filter.Operation)
+	}
+	if filter.Service != nil {
+		query.Where("t.service = ?", filter.Service)
+	}
+	if filter.GroupID != nil {
+		query.Where("t.group_id = ?", filter.GroupID)
+	}
+	if filter.WashServerID != nil {
+		query.Where("t.wash_server_id = ?", filter.WashServerID)
+	}
+
+	return query
 }
