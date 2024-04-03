@@ -10,11 +10,13 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // ListURL generates an URL for the list operation
 type ListURL struct {
+	Ids      []strfmt.UUID
 	Page     *int64
 	PageSize *int64
 
@@ -48,6 +50,20 @@ func (o *ListURL) Build() (*url.URL, error) {
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
 
 	qs := make(url.Values)
+
+	var idsIR []string
+	for _, idsI := range o.Ids {
+		idsIS := idsI.String()
+		if idsIS != "" {
+			idsIR = append(idsIR, idsIS)
+		}
+	}
+
+	ids := swag.JoinByFormat(idsIR, "multi")
+
+	for _, qsv := range ids {
+		qs.Add("ids", qsv)
+	}
 
 	var pageQ string
 	if o.Page != nil {

@@ -60,8 +60,8 @@ type Transaction struct {
 	// Minimum: 1
 	StationsCount *int64 `json:"stationsCount,omitempty"`
 
-	// The user who credited the organisation's account
-	UserID *string `json:"userId,omitempty"`
+	// user
+	User *User `json:"user,omitempty"`
 
 	// wash server
 	WashServer *WashServer `json:"washServer,omitempty"`
@@ -110,8 +110,8 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 		// Minimum: 1
 		StationsCount *int64 `json:"stationsCount,omitempty"`
 
-		// The user who credited the organisation's account
-		UserID *string `json:"userId,omitempty"`
+		// user
+		User *User `json:"user,omitempty"`
 
 		// wash server
 		WashServer *WashServer `json:"washServer,omitempty"`
@@ -132,7 +132,7 @@ func (m *Transaction) UnmarshalJSON(data []byte) error {
 	m.OrganizationID = props.OrganizationID
 	m.Sevice = props.Sevice
 	m.StationsCount = props.StationsCount
-	m.UserID = props.UserID
+	m.User = props.User
 	m.WashServer = props.WashServer
 	return nil
 }
@@ -174,6 +174,10 @@ func (m *Transaction) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateStationsCount(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateUser(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -330,6 +334,25 @@ func (m *Transaction) validateStationsCount(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Transaction) validateUser(formats strfmt.Registry) error {
+	if swag.IsZero(m.User) { // not required
+		return nil
+	}
+
+	if m.User != nil {
+		if err := m.User.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("user")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (m *Transaction) validateWashServer(formats strfmt.Registry) error {
 	if swag.IsZero(m.WashServer) { // not required
 		return nil
@@ -362,6 +385,10 @@ func (m *Transaction) ContextValidate(ctx context.Context, formats strfmt.Regist
 	}
 
 	if err := m.contextValidateSevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateUser(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -422,6 +449,27 @@ func (m *Transaction) contextValidateSevice(ctx context.Context, formats strfmt.
 				return ve.ValidateName("sevice")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
 				return ce.ValidateName("sevice")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Transaction) contextValidateUser(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.User != nil {
+
+		if swag.IsZero(m.User) { // not required
+			return nil
+		}
+
+		if err := m.User.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("user")
 			}
 			return err
 		}

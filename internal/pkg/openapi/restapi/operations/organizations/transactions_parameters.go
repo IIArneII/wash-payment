@@ -44,10 +44,18 @@ type TransactionsParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*
+	  In: query
+	*/
+	GroupID *strfmt.UUID
+	/*
 	  Required: true
 	  In: path
 	*/
 	ID strfmt.UUID
+	/*
+	  In: query
+	*/
+	Operation *string
 	/*
 	  Minimum: 1
 	  In: query
@@ -61,6 +69,14 @@ type TransactionsParams struct {
 	  Default: 10
 	*/
 	PageSize *int64
+	/*
+	  In: query
+	*/
+	Service *string
+	/*
+	  In: query
+	*/
+	WashServerID *strfmt.UUID
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -74,8 +90,18 @@ func (o *TransactionsParams) BindRequest(r *http.Request, route *middleware.Matc
 
 	qs := runtime.Values(r.URL.Query())
 
+	qGroupID, qhkGroupID, _ := qs.GetOK("groupId")
+	if err := o.bindGroupID(qGroupID, qhkGroupID, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	rID, rhkID, _ := route.Params.GetOK("id")
 	if err := o.bindID(rID, rhkID, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qOperation, qhkOperation, _ := qs.GetOK("operation")
+	if err := o.bindOperation(qOperation, qhkOperation, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -88,8 +114,55 @@ func (o *TransactionsParams) BindRequest(r *http.Request, route *middleware.Matc
 	if err := o.bindPageSize(qPageSize, qhkPageSize, route.Formats); err != nil {
 		res = append(res, err)
 	}
+
+	qService, qhkService, _ := qs.GetOK("service")
+	if err := o.bindService(qService, qhkService, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qWashServerID, qhkWashServerID, _ := qs.GetOK("washServerId")
+	if err := o.bindWashServerID(qWashServerID, qhkWashServerID, route.Formats); err != nil {
+		res = append(res, err)
+	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+// bindGroupID binds and validates parameter GroupID from query.
+func (o *TransactionsParams) bindGroupID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	// Format: uuid
+	value, err := formats.Parse("uuid", raw)
+	if err != nil {
+		return errors.InvalidType("groupId", "query", "strfmt.UUID", raw)
+	}
+	o.GroupID = (value.(*strfmt.UUID))
+
+	if err := o.validateGroupID(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateGroupID carries on validations for parameter GroupID
+func (o *TransactionsParams) validateGroupID(formats strfmt.Registry) error {
+
+	if err := validate.FormatOf("groupId", "query", "uuid", o.GroupID.String(), formats); err != nil {
+		return err
 	}
 	return nil
 }
@@ -124,6 +197,38 @@ func (o *TransactionsParams) validateID(formats strfmt.Registry) error {
 	if err := validate.FormatOf("id", "path", "uuid", o.ID.String(), formats); err != nil {
 		return err
 	}
+	return nil
+}
+
+// bindOperation binds and validates parameter Operation from query.
+func (o *TransactionsParams) bindOperation(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.Operation = &raw
+
+	if err := o.validateOperation(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateOperation carries on validations for parameter Operation
+func (o *TransactionsParams) validateOperation(formats strfmt.Registry) error {
+
+	if err := validate.EnumCase("operation", "query", *o.Operation, []interface{}{"deposit", "debit"}, true); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -204,5 +309,74 @@ func (o *TransactionsParams) validatePageSize(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// bindService binds and validates parameter Service from query.
+func (o *TransactionsParams) bindService(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.Service = &raw
+
+	if err := o.validateService(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateService carries on validations for parameter Service
+func (o *TransactionsParams) validateService(formats strfmt.Registry) error {
+
+	if err := validate.EnumCase("service", "query", *o.Service, []interface{}{"payment", "bonus", "sbp"}, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// bindWashServerID binds and validates parameter WashServerID from query.
+func (o *TransactionsParams) bindWashServerID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	// Format: uuid
+	value, err := formats.Parse("uuid", raw)
+	if err != nil {
+		return errors.InvalidType("washServerId", "query", "strfmt.UUID", raw)
+	}
+	o.WashServerID = (value.(*strfmt.UUID))
+
+	if err := o.validateWashServerID(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateWashServerID carries on validations for parameter WashServerID
+func (o *TransactionsParams) validateWashServerID(formats strfmt.Registry) error {
+
+	if err := validate.FormatOf("washServerId", "query", "uuid", o.WashServerID.String(), formats); err != nil {
+		return err
+	}
 	return nil
 }

@@ -19,8 +19,12 @@ import (
 type TransactionsURL struct {
 	ID strfmt.UUID
 
-	Page     *int64
-	PageSize *int64
+	GroupID      *strfmt.UUID
+	Operation    *string
+	Page         *int64
+	PageSize     *int64
+	Service      *string
+	WashServerID *strfmt.UUID
 
 	_basePath string
 	// avoid unkeyed usage
@@ -60,6 +64,22 @@ func (o *TransactionsURL) Build() (*url.URL, error) {
 
 	qs := make(url.Values)
 
+	var groupIDQ string
+	if o.GroupID != nil {
+		groupIDQ = o.GroupID.String()
+	}
+	if groupIDQ != "" {
+		qs.Set("groupId", groupIDQ)
+	}
+
+	var operationQ string
+	if o.Operation != nil {
+		operationQ = *o.Operation
+	}
+	if operationQ != "" {
+		qs.Set("operation", operationQ)
+	}
+
 	var pageQ string
 	if o.Page != nil {
 		pageQ = swag.FormatInt64(*o.Page)
@@ -74,6 +94,22 @@ func (o *TransactionsURL) Build() (*url.URL, error) {
 	}
 	if pageSizeQ != "" {
 		qs.Set("pageSize", pageSizeQ)
+	}
+
+	var serviceQ string
+	if o.Service != nil {
+		serviceQ = *o.Service
+	}
+	if serviceQ != "" {
+		qs.Set("service", serviceQ)
+	}
+
+	var washServerIDQ string
+	if o.WashServerID != nil {
+		washServerIDQ = o.WashServerID.String()
+	}
+	if washServerIDQ != "" {
+		qs.Set("washServerId", washServerIDQ)
 	}
 
 	_result.RawQuery = qs.Encode()

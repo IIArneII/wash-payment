@@ -6,6 +6,7 @@ package organizations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -44,6 +45,11 @@ type ListParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*
+	  In: query
+	  Collection Format: multi
+	*/
+	Ids []strfmt.UUID
+	/*
 	  Minimum: 1
 	  In: query
 	  Default: 1
@@ -69,6 +75,11 @@ func (o *ListParams) BindRequest(r *http.Request, route *middleware.MatchedRoute
 
 	qs := runtime.Values(r.URL.Query())
 
+	qIds, qhkIds, _ := qs.GetOK("ids")
+	if err := o.bindIds(qIds, qhkIds, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	qPage, qhkPage, _ := qs.GetOK("page")
 	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
 		res = append(res, err)
@@ -81,6 +92,36 @@ func (o *ListParams) BindRequest(r *http.Request, route *middleware.MatchedRoute
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindIds binds and validates array parameter Ids from query.
+//
+// Arrays are parsed according to CollectionFormat: "multi" (defaults to "csv" when empty).
+func (o *ListParams) bindIds(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	// CollectionFormat: multi
+	idsIC := rawData
+	if len(idsIC) == 0 {
+		return nil
+	}
+
+	var idsIR []strfmt.UUID
+	for i, idsIV := range idsIC {
+		// items.Format: "uuid"
+		value, err := formats.Parse("uuid", idsIV)
+		if err != nil {
+			return errors.InvalidType(fmt.Sprintf("%s.%v", "ids", i), "query", "strfmt.UUID", value)
+		}
+		idsI := *(value.(*strfmt.UUID))
+
+		if err := validate.FormatOf(fmt.Sprintf("%s.%v", "ids", i), "query", "uuid", idsI.String(), formats); err != nil {
+			return err
+		}
+		idsIR = append(idsIR, idsI)
+	}
+
+	o.Ids = idsIR
+
 	return nil
 }
 

@@ -72,18 +72,19 @@ func init() {
         "operationId": "list",
         "parameters": [
           {
-            "minimum": 1,
-            "type": "integer",
-            "default": 1,
-            "name": "page",
-            "in": "query"
+            "$ref": "#/parameters/page"
           },
           {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "default": 10,
-            "name": "pageSize",
+            "$ref": "#/parameters/pageSize"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "collectionFormat": "multi",
+            "name": "ids",
             "in": "query"
           }
         ],
@@ -262,18 +263,40 @@ func init() {
             "required": true
           },
           {
-            "minimum": 1,
-            "type": "integer",
-            "default": 1,
-            "name": "page",
+            "$ref": "#/parameters/page"
+          },
+          {
+            "$ref": "#/parameters/pageSize"
+          },
+          {
+            "enum": [
+              "deposit",
+              "debit"
+            ],
+            "type": "string",
+            "name": "operation",
             "in": "query"
           },
           {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "default": 10,
-            "name": "pageSize",
+            "enum": [
+              "payment",
+              "bonus",
+              "sbp"
+            ],
+            "type": "string",
+            "name": "service",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "groupId",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "washServerId",
             "in": "query"
           }
         ],
@@ -498,10 +521,8 @@ func init() {
           "minimum": 1,
           "x-nullable": true
         },
-        "userId": {
-          "description": "The user who credited the organisation's account",
-          "type": "string",
-          "x-nullable": true
+        "user": {
+          "$ref": "#/definitions/User"
         },
         "washServer": {
           "$ref": "#/definitions/WashServer"
@@ -538,6 +559,22 @@ func init() {
         }
       }
     },
+    "User": {
+      "description": "The user who credited the organisation's account",
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "WashServer": {
       "description": "Wash server that requested payment for using the service",
       "type": "object",
@@ -558,6 +595,23 @@ func init() {
           "type": "string"
         }
       }
+    }
+  },
+  "parameters": {
+    "page": {
+      "minimum": 1,
+      "type": "integer",
+      "default": 1,
+      "name": "page",
+      "in": "query"
+    },
+    "pageSize": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer",
+      "default": 10,
+      "name": "pageSize",
+      "in": "query"
     }
   },
   "responses": {
@@ -663,6 +717,16 @@ func init() {
             "default": 10,
             "name": "pageSize",
             "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "collectionFormat": "multi",
+            "name": "ids",
+            "in": "query"
           }
         ],
         "responses": {
@@ -891,6 +955,37 @@ func init() {
             "type": "integer",
             "default": 10,
             "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "deposit",
+              "debit"
+            ],
+            "type": "string",
+            "name": "operation",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "payment",
+              "bonus",
+              "sbp"
+            ],
+            "type": "string",
+            "name": "service",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "groupId",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "washServerId",
             "in": "query"
           }
         ],
@@ -1127,10 +1222,8 @@ func init() {
           "minimum": 1,
           "x-nullable": true
         },
-        "userId": {
-          "description": "The user who credited the organisation's account",
-          "type": "string",
-          "x-nullable": true
+        "user": {
+          "$ref": "#/definitions/User"
         },
         "washServer": {
           "$ref": "#/definitions/WashServer"
@@ -1167,6 +1260,22 @@ func init() {
         }
       }
     },
+    "User": {
+      "description": "The user who credited the organisation's account",
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "WashServer": {
       "description": "Wash server that requested payment for using the service",
       "type": "object",
@@ -1187,6 +1296,23 @@ func init() {
           "type": "string"
         }
       }
+    }
+  },
+  "parameters": {
+    "page": {
+      "minimum": 1,
+      "type": "integer",
+      "default": 1,
+      "name": "page",
+      "in": "query"
+    },
+    "pageSize": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer",
+      "default": 10,
+      "name": "pageSize",
+      "in": "query"
     }
   },
   "responses": {
