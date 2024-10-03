@@ -6,7 +6,7 @@ type (
 		OrganizationID string `json:"organizationId"`
 		Name           string `json:"name"`
 		Description    string `json:"description"`
-		Version        int64  `json:"version"`
+		Version        int    `json:"version"`
 		Deleted        bool   `json:"deleted"`
 	}
 )

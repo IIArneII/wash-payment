@@ -2,7 +2,9 @@ package dal
 
 import (
 	"testing"
-	"wash-payment/internal/dal/dbmodels"
+	"time"
+	"wash-payment/internal/app"
+	"wash-payment/internal/app/entity"
 
 	"github.com/powerman/check"
 	uuid "github.com/satori/go.uuid"
@@ -10,71 +12,80 @@ import (
 
 func TestCreateTransaction(tt *testing.T) {
 	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
 
 	amount := int64(100)
 
-	organization1 := generateOrganization(10000, 1)
-	transaction1 := generateTransaction(dbmodels.DepositOperation, amount, organization1.ID)
-	transaction2 := generateTransaction(dbmodels.DebitOperation, amount, organization1.ID)
-	transaction3 := generateTransaction(dbmodels.DebitOperation, 100000, organization1.ID)
-	transaction4 := generateTransaction(dbmodels.DebitOperation, 100000, uuid.NewV4())
+	organization := generateOrganization(10000, 1)
+	group := generateGroup(organization.ID, 1)
+	user := generateUser(entity.AdminRole, nil, 1)
+	washServer := generateWashServer(group.ID, 1)
+	transactionCreate1, transaction1 := generateTransactionDeposit(amount, organization.ID, user)
+	transactionCreate2, transaction2 := generateTransactionDebit(amount, organization.ID, group, washServer)
+	transactionCreate3, _ := generateTransactionDebit(100000, organization.ID, group, washServer)
+	transactionCreate4, _ := generateTransactionDebit(100000, uuid.NewV4(), group, washServer)
 
-	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization)
+	t.Nil(err)
+	_, err = repositories.GroupRepo.Create(ctx, group)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
+	t.Nil(err)
+	_, err = repositories.WashServerRepo.Create(ctx, washServer)
 	t.Nil(err)
 
-	// ---
-
-	res1, err := repositories.TransactionRepo.Create(ctx, transaction1)
+	res1, err := repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Nil(err)
 	t.Equal(res1.CreatedAt, transaction1.CreatedAt)
 	transaction1.CreatedAt = res1.CreatedAt
 	t.DeepEqual(res1, transaction1)
 
-	organization1.Balance += amount
-	orgDB, err := repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	organization.Balance += amount
+	orgDB, err := repositories.OrganizationRepo.Get(ctx, organization.ID)
 	t.Nil(err)
-	t.DeepEqual(orgDB, organization1)
+	t.DeepEqual(orgDB, organization)
 
-	// ---
-
-	res2, err := repositories.TransactionRepo.Create(ctx, transaction2)
+	res2, err := repositories.TransactionRepo.Create(ctx, transactionCreate2)
 	t.Nil(err)
 	t.Equal(res2.CreatedAt, transaction2.CreatedAt)
+	t.NotNil(res2.ForDate)
+	t.Equal(*res2.ForDate, *transaction2.ForDate)
 	transaction2.CreatedAt = res2.CreatedAt
+	transaction2.ForDate = res2.ForDate
 	t.DeepEqual(res2, transaction2)
 
-	organization1.Balance -= amount
-	orgDB, err = repositories.OrganizationRepo.Get(ctx, organization1.ID)
+	organization.Balance -= amount
+	orgDB, err = repositories.OrganizationRepo.Get(ctx, organization.ID)
 	t.Nil(err)
-	t.DeepEqual(orgDB, organization1)
+	t.DeepEqual(orgDB, organization)
 
-	// ---
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate3)
+	t.Err(err, app.ErrInsufficientFunds)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction3)
-	t.Err(err, dbmodels.ErrInsufficientFunds)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate4)
+	t.Err(err, app.ErrNotFound)
 
-	// ---
-
-	_, err = repositories.TransactionRepo.Create(ctx, transaction4)
-	t.Err(err, dbmodels.ErrNotFound)
-
-	// ---
-
-	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
-	t.Err(err, dbmodels.ErrAlreadyExists)
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
+	t.Err(err, app.ErrAlreadyExists)
 }
 
 func TestGetTransaction(tt *testing.T) {
 	t := check.T(tt)
-
-	var organization1 = generateOrganization(10000, 1)
-	var transaction1 = generateTransaction(dbmodels.DepositOperation, 100, organization1.ID)
-	var transaction2 = generateTransaction(dbmodels.DepositOperation, 100, organization1.ID)
-
-	_, err := repositories.OrganizationRepo.Create(ctx, organization1)
+	err := truncate()
 	t.Nil(err)
 
-	_, err = repositories.TransactionRepo.Create(ctx, transaction1)
+	organization := generateOrganization(10000, 1)
+	user := generateUser(entity.AdminRole, nil, 1)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization.ID, user)
+	_, transaction2 := generateTransactionDeposit(100, organization.ID, user)
+
+	_, err = repositories.OrganizationRepo.Create(ctx, organization)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
+	t.Nil(err)
+
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
 	t.Nil(err)
 
 	resGet1, err := repositories.TransactionRepo.Get(ctx, transaction1.ID)
@@ -84,5 +95,103 @@ func TestGetTransaction(tt *testing.T) {
 	t.DeepEqual(resGet1, transaction1)
 
 	_, err = repositories.TransactionRepo.Get(ctx, transaction2.ID)
-	t.Err(err, dbmodels.ErrNotFound)
+	t.Err(err, app.ErrNotFound)
+}
+
+func TestListTransaction(tt *testing.T) {
+	t := check.T(tt)
+	err := truncate()
+	t.Nil(err)
+
+	var organization1 = generateOrganization(10000, 1)
+	var organization2 = generateOrganization(10000, 1)
+	user := generateUser(entity.AdminRole, nil, 1)
+	transactionCreate1, transaction1 := generateTransactionDeposit(100, organization1.ID, user)
+	transactionCreate2, transaction2 := generateTransactionDeposit(100, organization1.ID, user)
+	transaction2.CreatedAt = transaction2.CreatedAt.Add(time.Second)
+	transactionCreate2.CreatedAt = transactionCreate2.CreatedAt.Add(time.Second)
+
+	_, err = repositories.OrganizationRepo.Create(ctx, organization1)
+	t.Nil(err)
+	_, err = repositories.OrganizationRepo.Create(ctx, organization2)
+	t.Nil(err)
+	_, err = repositories.UserRepo.Create(ctx, user)
+	t.Nil(err)
+
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate1)
+	t.Nil(err)
+
+	_, err = repositories.TransactionRepo.Create(ctx, transactionCreate2)
+	t.Nil(err)
+
+	filter := entity.TransactionFilter{
+		OrganizationID: organization1.ID,
+		Filter:         entity.NewFilter(1, 10),
+	}
+	list, err := repositories.TransactionRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 1)
+	t.Equal(len(list.Items), 2)
+	t.Equal(list.Items[0].CreatedAt, transaction2.CreatedAt)
+	t.Equal(list.Items[1].CreatedAt, transaction1.CreatedAt)
+	list.Items[0].CreatedAt = transaction2.CreatedAt
+	list.Items[1].CreatedAt = transaction1.CreatedAt
+	t.DeepEqual(list.Items, []entity.Transaction{transaction2, transaction1})
+
+	filter = entity.TransactionFilter{
+		OrganizationID: organization1.ID,
+		Filter:         entity.NewFilter(10, 10),
+	}
+	list, err = repositories.TransactionRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 1)
+	t.DeepEqual(list.Items, []entity.Transaction{})
+
+	filter = entity.TransactionFilter{
+		OrganizationID: organization1.ID,
+		Filter:         entity.NewFilter(1, 1),
+	}
+	list, err = repositories.TransactionRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 2)
+	t.Equal(len(list.Items), 1)
+	t.Equal(list.Items[0].CreatedAt, transaction2.CreatedAt)
+	list.Items[0].CreatedAt = transaction2.CreatedAt
+	t.DeepEqual(list.Items, []entity.Transaction{transaction2})
+
+	filter = entity.TransactionFilter{
+		OrganizationID: organization1.ID,
+		Filter:         entity.NewFilter(2, 1),
+	}
+	list, err = repositories.TransactionRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 2)
+	t.Equal(list.TotalPages, 2)
+	t.Equal(len(list.Items), 1)
+	t.Equal(list.Items[0].CreatedAt, transaction1.CreatedAt)
+	list.Items[0].CreatedAt = transaction1.CreatedAt
+	t.DeepEqual(list.Items, []entity.Transaction{transaction1})
+
+	filter = entity.TransactionFilter{
+		OrganizationID: organization2.ID,
+		Filter:         entity.NewFilter(1, 10),
+	}
+	list, err = repositories.TransactionRepo.List(ctx, filter)
+	t.Nil(err)
+	t.Equal(list.Page, filter.Page())
+	t.Equal(list.PageSize, filter.PageSize())
+	t.Equal(list.TotalItems, 0)
+	t.Equal(list.TotalPages, 0)
+	t.DeepEqual(list.Items, []entity.Transaction{})
 }

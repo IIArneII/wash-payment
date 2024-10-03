@@ -5,6 +5,7 @@ ALTER DATABASE wash_payment SET default_transaction_isolation = 'serializable';
 
 CREATE TYPE USER_ROLE_ENUM              AS ENUM ('system_manager', 'admin', 'no_access');
 CREATE TYPE TRANSACTIONS_OPERATION_ENUM AS ENUM ('deposit', 'debit');
+CREATE TYPE TRANSACTIONS_SERVICE_ENUM   AS ENUM ('payment', 'bonus', 'sbp');
 
 create table organizations (
     id           uuid                             PRIMARY KEY,
@@ -13,7 +14,14 @@ create table organizations (
     description  TEXT    NOT NULL  DEFAULT '',
     balance      BIGINT  NOT NULL  DEFAULT 0      CHECK (balance >= 0),
     deleted      BOOLEAN NOT NULL  DEFAULT false,
-    version      BIGINT  NOT NULL  DEFAULT 1      CHECK (version > 0)
+    version      BIGINT  NOT NULL  DEFAULT 1      CHECK (version >= 0)
+);
+
+create table service_prices (
+    organization_id uuid                      NOT NULL             REFERENCES organizations(id),
+    service         TRANSACTIONS_SERVICE_ENUM NOT NULL,
+    price           BIGINT                    NOT NULL DEFAULT 0 CHECK (price >= 0),
+    PRIMARY KEY (organization_id, service)
 );
 
 create table groups (
@@ -22,7 +30,7 @@ create table groups (
     name            TEXT    NOT NULL DEFAULT '',
     description     TEXT    NOT NULL DEFAULT '',
     deleted         BOOLEAN NOT NULL DEFAULT false,
-    version         BIGINT  NOT NULL DEFAULT 1      CHECK (version > 0)
+    version         BIGINT  NOT NULL DEFAULT 1      CHECK (version >= 0)
 );
 
 CREATE TABLE users (
@@ -31,15 +39,20 @@ CREATE TABLE users (
     email           TEXT           NOT NULL  DEFAULT '',
     role            USER_ROLE_ENUM NOT NULL,
     organization_id uuid                                 REFERENCES organizations(id) ON DELETE RESTRICT,
-    version         BIGINT         NOT NULL  DEFAULT 1   CHECK (version > 0)
+    version         BIGINT         NOT NULL  DEFAULT 1   CHECK (version >= 0)
 );
 
 create table transactions (
     id              uuid                                     PRIMARY KEY,
     organization_id uuid                        NOT NULL     REFERENCES organizations(id) ON DELETE RESTRICT,
+    group_id        uuid                                     REFERENCES groups(id)        ON DELETE RESTRICT,
     amount          BIGINT                      NOT NULL     CHECK (amount > 0),
     operation       TRANSACTIONS_OPERATION_ENUM NOT NULL,
-    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW()
+    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL     DEFAULT NOW(),
+    for_date        DATE,
+    service         TRANSACTIONS_SERVICE_ENUM   NOT NULL,
+    stations_count  INTEGER                                  CHECK (stations_count > 0),
+    user_id         TEXT                                     REFERENCES users(id)         ON DELETE RESTRICT
 );
 
 -- +goose StatementEnd
@@ -50,8 +63,10 @@ create table transactions (
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS service_prices;
 DROP TABLE IF EXISTS organizations;
 DROP TYPE  IF EXISTS TRANSACTIONS_OPERATION_ENUM;
+DROP TYPE  IF EXISTS TRANSACTIONS_SERVICE_ENUM;
 DROP TYPE  IF EXISTS USER_ROLE_ENUM;
 ALTER DATABASE wash_payment SET default_transaction_isolation = 'read committed';
 

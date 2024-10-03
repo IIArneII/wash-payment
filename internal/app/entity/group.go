@@ -10,13 +10,14 @@ type (
 		OrganizationID uuid.UUID
 		Name           string
 		Description    string
-		Version        int64
+		Version        int
 		Deleted        bool
 	}
 
 	GroupUpdate struct {
-		Version     *int64
+		Version     *int
 		Name        *string
 		Description *string
+		Deleted     *bool
 	}
 )

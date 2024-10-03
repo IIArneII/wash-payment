@@ -14,21 +14,19 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	"wash-payment/internal/app"
 )
 
 // HealthCheckHandlerFunc turns a function with the right signature into a health check handler
-type HealthCheckHandlerFunc func(HealthCheckParams, *app.Auth) HealthCheckResponder
+type HealthCheckHandlerFunc func(HealthCheckParams) HealthCheckResponder
 
 // Handle executing the request and returning a response
-func (fn HealthCheckHandlerFunc) Handle(params HealthCheckParams, principal *app.Auth) HealthCheckResponder {
-	return fn(params, principal)
+func (fn HealthCheckHandlerFunc) Handle(params HealthCheckParams) HealthCheckResponder {
+	return fn(params)
 }
 
 // HealthCheckHandler interface for that can handle valid health check params
 type HealthCheckHandler interface {
-	Handle(HealthCheckParams, *app.Auth) HealthCheckResponder
+	Handle(HealthCheckParams) HealthCheckResponder
 }
 
 // NewHealthCheck creates a new http.Handler for the health check operation
@@ -54,25 +52,12 @@ func (o *HealthCheck) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		*r = *rCtx
 	}
 	var Params = NewHealthCheckParams()
-	uprinc, aCtx, err := o.Context.Authorize(r, route)
-	if err != nil {
-		o.Context.Respond(rw, r, route.Produces, route, err)
-		return
-	}
-	if aCtx != nil {
-		*r = *aCtx
-	}
-	var principal *app.Auth
-	if uprinc != nil {
-		principal = uprinc.(*app.Auth) // this is really a app.Auth, I promise
-	}
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params, principal) // actually handle the request
+	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

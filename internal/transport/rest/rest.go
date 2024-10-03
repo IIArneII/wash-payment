@@ -88,8 +88,7 @@ func NewServer(l *zap.SugaredLogger, cfg config.Config, services *app.Services, 
 	return server, nil
 }
 
-func (svc *service) healthCheck(params standard.HealthCheckParams, profile *app.Auth) standard.HealthCheckResponder {
-	svc.l.Info(profile.User.ID)
+func (svc *service) healthCheck(params standard.HealthCheckParams) standard.HealthCheckResponder {
 	return standard.NewHealthCheckOK().WithPayload(&standard.HealthCheckOKBody{Ok: true})
 }
 

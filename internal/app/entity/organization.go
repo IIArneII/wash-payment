@@ -5,23 +5,20 @@ import (
 )
 
 type (
-	Organization struct {
-		ID          uuid.UUID
-		Name        string
-		DisplayName string
-		Description string
-		Version     int64
-		Balance     int64
-		Deleted     bool
+	ServicePrices struct {
+		Bonus int64
+		Sbp   int64
 	}
 
-	OrganizationCreate struct {
-		ID          uuid.UUID
-		Name        string
-		DisplayName string
-		Description string
-		Version     int64
-		Deleted     bool
+	Organization struct {
+		ID            uuid.UUID
+		Name          string
+		DisplayName   string
+		Description   string
+		Version       int64
+		Balance       int64
+		Deleted       bool
+		ServicePrices ServicePrices
 	}
 
 	OrganizationUpdate struct {
@@ -29,5 +26,11 @@ type (
 		DisplayName *string
 		Description *string
 		Version     *int64
+		Deleted     *bool
+	}
+
+	OrganizationFilter struct {
+		Filter
+		IDs []uuid.UUID
 	}
 )

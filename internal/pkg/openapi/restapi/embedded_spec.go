@@ -31,7 +31,7 @@ func init() {
   "info": {
     "description": "Payment system service for self-service car washes",
     "title": "wash-payment",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "paths": {
     "/healthCheck": {
@@ -57,14 +57,66 @@ func init() {
         }
       }
     },
+    "/organizations": {
+      "get": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get a list of organizations",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organizations",
+        "operationId": "list",
+        "parameters": [
+          {
+            "$ref": "#/parameters/page"
+          },
+          {
+            "$ref": "#/parameters/pageSize"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "collectionFormat": "multi",
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/OrganizationPage"
+            }
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
+    },
     "/organizations/{id}": {
       "get": {
-        "description": "Get information about the specified organization.",
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get information about the specified organization",
         "tags": [
           "Organizations"
         ],
         "summary": "Get organization",
-        "operationId": "Get",
+        "operationId": "get",
         "parameters": [
           {
             "type": "string",
@@ -95,12 +147,17 @@ func init() {
     },
     "/organizations/{id}/deposit": {
       "post": {
-        "description": "Increase the balance of the specified organization by the specified number of kopecks.",
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Increase the balance of the specified organization by the specified number of kopecks",
         "tags": [
           "Organizations"
         ],
         "summary": "Top up balance",
-        "operationId": "Deposit",
+        "operationId": "deposit",
         "parameters": [
           {
             "type": "string",
@@ -123,6 +180,132 @@ func init() {
           },
           "400": {
             "$ref": "#/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/organizations/{id}/service-prices": {
+      "put": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Set prices for services for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Set service prices",
+        "operationId": "setServicePrices",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServicePrices"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/organizations/{id}/transactions": {
+      "get": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get a list of transactions for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization transactions",
+        "operationId": "transactions",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "$ref": "#/parameters/page"
+          },
+          {
+            "$ref": "#/parameters/pageSize"
+          },
+          {
+            "enum": [
+              "deposit",
+              "debit"
+            ],
+            "type": "string",
+            "name": "operation",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "payment",
+              "bonus",
+              "sbp"
+            ],
+            "type": "string",
+            "name": "service",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "groupId",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "washServerId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/TransactionPage"
+            }
           },
           "403": {
             "$ref": "#/responses/Forbidden"
@@ -169,6 +352,35 @@ func init() {
         }
       }
     },
+    "Group": {
+      "description": "Group that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Operation": {
+      "description": "Type of operation",
+      "type": "string",
+      "enum": [
+        "deposit",
+        "debit"
+      ]
+    },
     "Organization": {
       "type": "object",
       "required": [
@@ -176,7 +388,8 @@ func init() {
         "name",
         "displayName",
         "description",
-        "balance"
+        "balance",
+        "servicePrices"
       ],
       "properties": {
         "balance": {
@@ -196,8 +409,209 @@ func init() {
         },
         "name": {
           "type": "string"
+        },
+        "servicePrices": {
+          "$ref": "#/definitions/ServicePrices"
         }
       }
+    },
+    "OrganizationPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Organization"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
+    "Service": {
+      "description": "Service, for the use of which the payment was made",
+      "type": "string",
+      "enum": [
+        "payment",
+        "bonus",
+        "sbp"
+      ]
+    },
+    "ServicePrices": {
+      "description": "Prices for services for a specific organization in kopecks (RUB * 10^2)",
+      "type": "object",
+      "required": [
+        "bonus",
+        "sbp"
+      ],
+      "properties": {
+        "bonus": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sbp": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "required": [
+        "id",
+        "organizationId",
+        "createdAt",
+        "operation",
+        "sevice",
+        "amount"
+      ],
+      "properties": {
+        "amount": {
+          "description": "Amount in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "forDate": {
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "group": {
+          "$ref": "#/definitions/Group"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operation": {
+          "$ref": "#/definitions/Operation"
+        },
+        "organizationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sevice": {
+          "$ref": "#/definitions/Service"
+        },
+        "stationsCount": {
+          "description": "Number of stations in the car wash that requested payment for using of the service",
+          "type": "integer",
+          "minimum": 1,
+          "x-nullable": true
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "washServer": {
+          "$ref": "#/definitions/WashServer"
+        }
+      }
+    },
+    "TransactionPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Transaction"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
+    "User": {
+      "description": "The user who credited the organisation's account",
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "WashServer": {
+      "description": "Wash server that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "page": {
+      "minimum": 1,
+      "type": "integer",
+      "default": 1,
+      "name": "page",
+      "in": "query"
+    },
+    "pageSize": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer",
+      "default": 10,
+      "name": "pageSize",
+      "in": "query"
     }
   },
   "responses": {
@@ -233,12 +647,7 @@ func init() {
       "name": "Authorization",
       "in": "header"
     }
-  },
-  "security": [
-    {
-      "authKey": []
-    }
-  ]
+  }
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
   "consumes": [
@@ -254,7 +663,7 @@ func init() {
   "info": {
     "description": "Payment system service for self-service car washes",
     "title": "wash-payment",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "paths": {
     "/healthCheck": {
@@ -280,14 +689,81 @@ func init() {
         }
       }
     },
+    "/organizations": {
+      "get": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get a list of organizations",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organizations",
+        "operationId": "list",
+        "parameters": [
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "collectionFormat": "multi",
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/OrganizationPage"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/organizations/{id}": {
       "get": {
-        "description": "Get information about the specified organization.",
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get information about the specified organization",
         "tags": [
           "Organizations"
         ],
         "summary": "Get organization",
-        "operationId": "Get",
+        "operationId": "get",
         "parameters": [
           {
             "type": "string",
@@ -327,12 +803,17 @@ func init() {
     },
     "/organizations/{id}/deposit": {
       "post": {
-        "description": "Increase the balance of the specified organization by the specified number of kopecks.",
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Increase the balance of the specified organization by the specified number of kopecks",
         "tags": [
           "Organizations"
         ],
         "summary": "Top up balance",
-        "operationId": "Deposit",
+        "operationId": "deposit",
         "parameters": [
           {
             "type": "string",
@@ -379,6 +860,162 @@ func init() {
           }
         }
       }
+    },
+    "/organizations/{id}/service-prices": {
+      "put": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Set prices for services for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Set service prices",
+        "operationId": "setServicePrices",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServicePrices"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{id}/transactions": {
+      "get": {
+        "security": [
+          {
+            "authKey": []
+          }
+        ],
+        "description": "Get a list of transactions for the specified organization",
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization transactions",
+        "operationId": "transactions",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "minimum": 1,
+            "type": "integer",
+            "default": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 10,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "deposit",
+              "debit"
+            ],
+            "type": "string",
+            "name": "operation",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "payment",
+              "bonus",
+              "sbp"
+            ],
+            "type": "string",
+            "name": "service",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "groupId",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "washServerId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/TransactionPage"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "default": {
+            "description": "Internal error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -413,6 +1050,35 @@ func init() {
         }
       }
     },
+    "Group": {
+      "description": "Group that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Operation": {
+      "description": "Type of operation",
+      "type": "string",
+      "enum": [
+        "deposit",
+        "debit"
+      ]
+    },
     "Organization": {
       "type": "object",
       "required": [
@@ -420,7 +1086,8 @@ func init() {
         "name",
         "displayName",
         "description",
-        "balance"
+        "balance",
+        "servicePrices"
       ],
       "properties": {
         "balance": {
@@ -441,8 +1108,211 @@ func init() {
         },
         "name": {
           "type": "string"
+        },
+        "servicePrices": {
+          "$ref": "#/definitions/ServicePrices"
         }
       }
+    },
+    "OrganizationPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Organization"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
+    "Service": {
+      "description": "Service, for the use of which the payment was made",
+      "type": "string",
+      "enum": [
+        "payment",
+        "bonus",
+        "sbp"
+      ]
+    },
+    "ServicePrices": {
+      "description": "Prices for services for a specific organization in kopecks (RUB * 10^2)",
+      "type": "object",
+      "required": [
+        "bonus",
+        "sbp"
+      ],
+      "properties": {
+        "bonus": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "sbp": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "required": [
+        "id",
+        "organizationId",
+        "createdAt",
+        "operation",
+        "sevice",
+        "amount"
+      ],
+      "properties": {
+        "amount": {
+          "description": "Amount in kopecks (RUB * 10^2)",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "forDate": {
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "group": {
+          "$ref": "#/definitions/Group"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operation": {
+          "$ref": "#/definitions/Operation"
+        },
+        "organizationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sevice": {
+          "$ref": "#/definitions/Service"
+        },
+        "stationsCount": {
+          "description": "Number of stations in the car wash that requested payment for using of the service",
+          "type": "integer",
+          "minimum": 1,
+          "x-nullable": true
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "washServer": {
+          "$ref": "#/definitions/WashServer"
+        }
+      }
+    },
+    "TransactionPage": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "totalPages",
+        "totalItems"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Transaction"
+          }
+        },
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      }
+    },
+    "User": {
+      "description": "The user who credited the organisation's account",
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "WashServer": {
+      "description": "Wash server that requested payment for using the service",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "page": {
+      "minimum": 1,
+      "type": "integer",
+      "default": 1,
+      "name": "page",
+      "in": "query"
+    },
+    "pageSize": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer",
+      "default": 10,
+      "name": "pageSize",
+      "in": "query"
     }
   },
   "responses": {
@@ -478,11 +1348,6 @@ func init() {
       "name": "Authorization",
       "in": "header"
     }
-  },
-  "security": [
-    {
-      "authKey": []
-    }
-  ]
+  }
 }`))
 }

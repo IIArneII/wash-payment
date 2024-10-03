@@ -3,16 +3,13 @@ package organization
 import (
 	"context"
 	"errors"
-	"time"
 	"wash-payment/internal/app"
-	"wash-payment/internal/app/conversions"
 	"wash-payment/internal/app/entity"
-	"wash-payment/internal/dal/dbmodels"
 
 	uuid "github.com/satori/go.uuid"
 )
 
-func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizationID uuid.UUID) (entity.Organization, error) {
+func (s *organizationService) Get(ctx context.Context, auth entity.Auth, organizationID uuid.UUID) (entity.Organization, error) {
 	if auth.User.Role != entity.SystemManagerRole {
 		if auth.User.Role == entity.NoAccessRole {
 			return entity.Organization{}, app.ErrForbidden
@@ -27,147 +24,122 @@ func (s *organizationService) Get(ctx context.Context, auth app.Auth, organizati
 		}
 	}
 
-	organizationFromDB, err := s.organizationRepo.Get(ctx, organizationID)
+	organization, err := s.organizationRepo.Get(ctx, organizationID)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		}
-
 		return entity.Organization{}, err
 	}
-
-	return conversions.OrganizationFromDB(organizationFromDB), nil
-}
-
-func (s *organizationService) Create(ctx context.Context, organizationCreate entity.OrganizationCreate) (entity.Organization, error) {
-	dbOrganization := conversions.OrganizationCreateToDB(organizationCreate)
-
-	newOrganization, err := s.organizationRepo.Create(ctx, dbOrganization)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			err = app.ErrAlreadyExists
-		}
-
-		return entity.Organization{}, err
+	if organization.Deleted {
+		return entity.Organization{}, app.ErrNotFound
 	}
 
-	return conversions.OrganizationFromDB(newOrganization), nil
+	return organization, nil
 }
 
-func (s *organizationService) Update(ctx context.Context, organizationID uuid.UUID, organizationUpdate entity.OrganizationUpdate) error {
-	dbOrganizationUpdate := conversions.OrganizationUpdateToDB(organizationUpdate)
-
-	err := s.organizationRepo.Update(ctx, organizationID, dbOrganizationUpdate)
-	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		} else if errors.Is(err, dbmodels.ErrEmptyUpdate) {
-			err = app.ErrBadRequest
-		}
-
-		return err
+func (s *organizationService) List(ctx context.Context, auth entity.Auth, filter entity.OrganizationFilter) (entity.Page[entity.Organization], error) {
+	if auth.User.Role != entity.SystemManagerRole {
+		return entity.Page[entity.Organization]{}, app.ErrForbidden
 	}
 
-	return nil
-}
-
-func (s *organizationService) Delete(ctx context.Context, organizationID uuid.UUID) error {
-	err := s.organizationRepo.Delete(ctx, organizationID)
+	orgs, err := s.organizationRepo.List(ctx, filter)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		}
-
-		return err
+		return entity.Page[entity.Organization]{}, err
 	}
 
-	return nil
+	return orgs, nil
 }
 
-func (s *organizationService) Deposit(ctx context.Context, auth app.Auth, organizationID uuid.UUID, amount int64) error {
+func (s *organizationService) SetServicePrices(ctx context.Context, auth entity.Auth, organizationID uuid.UUID, servicePrices entity.ServicePrices) error {
 	if auth.User.Role != entity.SystemManagerRole {
 		return app.ErrForbidden
 	}
 
-	if amount <= 0 {
+	if servicePrices.Bonus < 0 || servicePrices.Sbp < 0 {
 		return app.ErrBadValue
 	}
 
 	_, err := s.organizationRepo.Get(ctx, organizationID)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
-		}
-
 		return err
 	}
 
-	transaction := dbmodels.Transaction{
-		ID:             uuid.NewV4(),
-		OrganizationID: organizationID,
-		Amount:         amount,
-		Operation:      dbmodels.DepositOperation,
-		CreatedAt:      time.Now().UTC(),
+	_, err = s.servicePriceRepo.Update(ctx, organizationID, entity.BonusService, servicePrices.Bonus)
+	if err != nil {
+		return err
 	}
 
-	_, err = s.transactionRepo.Create(ctx, transaction)
+	_, err = s.servicePriceRepo.Update(ctx, organizationID, entity.SbpService, servicePrices.Sbp)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			return app.ErrNotFound
-		}
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			return app.ErrAlreadyExists
-		}
-		if errors.Is(err, dbmodels.ErrInsufficientFunds) {
-			return app.ErrInsufficientFunds
-		}
-
 		return err
 	}
 
 	return nil
 }
 
-func (s *organizationService) Withdrawal(ctx context.Context, organizationID uuid.UUID, amount int64) error {
-	if amount <= 0 {
-		return app.ErrBadValue
+func (s *organizationService) Upsert(ctx context.Context, organization entity.Organization) (entity.Organization, error) {
+	if organization.ID == uuid.Nil {
+		return entity.Organization{}, app.ErrNotFound
 	}
 
-	organizationDB, err := s.organizationRepo.Get(ctx, organizationID)
+	dbOrg, err := s.organizationRepo.Get(ctx, organization.ID)
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			err = app.ErrNotFound
+		if errors.Is(err, app.ErrNotFound) {
+			organization.Balance = 0
+			newOrganization, err := s.organizationRepo.Create(ctx, organization)
+			if err != nil {
+				return entity.Organization{}, err
+			}
+
+			err = s.servicePricesForCreatedOrganization(ctx, newOrganization.ID)
+			if err != nil {
+				return entity.Organization{}, err
+			}
+
+			return newOrganization, nil
+		}
+		return entity.Organization{}, err
+	} else {
+		if dbOrg.Version >= organization.Version {
+			return entity.Organization{}, app.ErrOldVersion
 		}
 
+		organizationUpdate := organizationToUpdate(organization)
+		updatedOrg, err := s.organizationRepo.Update(ctx, organization.ID, organizationUpdate)
+		if err != nil {
+			return entity.Organization{}, err
+		}
+
+		return updatedOrg, nil
+	}
+}
+
+func (s *organizationService) servicePricesForCreatedOrganization(ctx context.Context, organizationID uuid.UUID) error {
+	_, err := s.servicePriceRepo.Create(ctx, entity.ServicePrice{
+		OrganizationID: organizationID,
+		Service:        entity.BonusService,
+		Price:          0,
+	})
+	if err != nil {
 		return err
 	}
 
-	if organizationDB.Balance-amount < 0 {
-		return app.ErrInsufficientFunds
-	}
-
-	transaction := dbmodels.Transaction{
-		ID:             uuid.NewV4(),
+	_, err = s.servicePriceRepo.Create(ctx, entity.ServicePrice{
 		OrganizationID: organizationID,
-		Amount:         amount,
-		Operation:      dbmodels.DebitOperation,
-		CreatedAt:      time.Now().UTC(),
-	}
-
-	_, err = s.transactionRepo.Create(ctx, transaction)
+		Service:        entity.SbpService,
+		Price:          0,
+	})
 	if err != nil {
-		if errors.Is(err, dbmodels.ErrNotFound) {
-			return app.ErrNotFound
-		}
-		if errors.Is(err, dbmodels.ErrAlreadyExists) {
-			return app.ErrAlreadyExists
-		}
-		if errors.Is(err, dbmodels.ErrInsufficientFunds) {
-			return app.ErrInsufficientFunds
-		}
-
 		return err
 	}
 
 	return nil
+}
+
+func organizationToUpdate(org entity.Organization) entity.OrganizationUpdate {
+	return entity.OrganizationUpdate{
+		Name:        &org.Name,
+		DisplayName: &org.DisplayName,
+		Description: &org.Description,
+		Version:     &org.Version,
+		Deleted:     &org.Deleted,
+	}
 }

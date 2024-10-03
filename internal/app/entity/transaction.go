@@ -13,12 +13,53 @@ type (
 		Amount         int64
 		Operation      Operation
 		CreatedAt      time.Time
+		ForDate        *time.Time
+		Service        Service
+		StationsCount  *int
+		Group          *Group
+		User           *User
+		WashServer     *WashServer
 	}
 
+	TransactionCreate struct {
+		ID             uuid.UUID
+		OrganizationID uuid.UUID
+		Amount         int64
+		Operation      Operation
+		CreatedAt      time.Time
+		ForDate        *time.Time
+		Service        Service
+		StationsCount  *int
+		UserID         *string
+		GroupID        *uuid.UUID
+		WashServerID   *uuid.UUID
+	}
+
+	Withdrawal struct {
+		StationsCount int
+		ForDate       time.Time
+		Service       Service
+		WashServerID  uuid.UUID
+	}
+
+	TransactionFilter struct {
+		Filter
+		OrganizationID uuid.UUID
+		Operation      *Operation
+		Service        *Service
+		GroupID        *uuid.UUID
+		WashServerID   *uuid.UUID
+	}
+
+	Service   string
 	Operation string
 )
 
 const (
 	DepositOperation Operation = "deposit"
 	DebitOperation   Operation = "debit"
+
+	PaymentService Service = "payment"
+	BonusService   Service = "bonus"
+	SbpService     Service = "sbp"
 )

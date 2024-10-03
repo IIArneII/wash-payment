@@ -11,15 +11,19 @@ import (
 )
 
 type RabbitService interface {
-	SendMessage(msg interface{}, service entity.Service, routingKey entity.RoutingKey, messageType entity.MessageType) error
+	SendMessage(msg interface{}, service entity.Exchange, routingKey string, messageType entity.MessageType) error
 }
 
 type rabbitService struct {
 	l *zap.SugaredLogger
 
-	washPaymentPublisher *rabbitmq.Publisher
-	adminsConsumer       *rabbitmq.Consumer
-	rabbitSvc            app.RabbitService
+	washBonusPublisher *rabbitmq.Publisher
+	controlPublisher   *rabbitmq.Publisher
+	paymentPublisher   *rabbitmq.Publisher
+	adminConsumer      *rabbitmq.Consumer
+	paymentConsumer    *rabbitmq.Consumer
+
+	rabbitSvc app.RabbitService
 }
 
 func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc app.RabbitService) (RabbitService, error) {
@@ -53,11 +57,11 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
-	svc.washPaymentPublisher, err = rabbitmq.NewPublisher(
+	svc.washBonusPublisher, err = rabbitmq.NewPublisher(
 		conn,
 		rabbitmq.WithPublisherOptionsLogging,
 		rabbitmq.WithPublisherOptionsExchangeDeclare,
-		rabbitmq.WithPublisherOptionsExchangeName(string(entity.AdminsExchange)),
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.WashBonusExchange)),
 		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
 		rabbitmq.WithPublisherOptionsExchangeDurable,
 	)
@@ -65,15 +69,65 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
-	svc.adminsConsumer, err = rabbitmq.NewConsumer(
+	svc.controlPublisher, err = rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.ControlExchange)),
+		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
+		rabbitmq.WithPublisherOptionsExchangeDurable,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.paymentPublisher, err = rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.PaymentExchange)),
+		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
+		rabbitmq.WithPublisherOptionsExchangeDurable,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.adminConsumer, err = rabbitmq.NewConsumer(
 		conn,
 		svc.processMessage,
-		string(entity.WashPaymentRoutingKey),
+		string(entity.DataQueue),
 		rabbitmq.WithConsumerOptionsExchangeDeclare,
 		rabbitmq.WithConsumerOptionsExchangeName(string(entity.AdminsExchange)),
+		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WashBonusRoutingKey)),
 		rabbitmq.WithConsumerOptionsExchangeKind("fanout"),
 		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.paymentConsumer, err = rabbitmq.NewConsumer(
+		conn,
+		svc.processMessage,
+		string(entity.WithdrawalRequestQueue),
+		rabbitmq.WithConsumerOptionsExchangeDeclare,
+		rabbitmq.WithConsumerOptionsExchangeName(string(entity.PaymentExchange)),
+		rabbitmq.WithConsumerOptionsRoutingKey(string(entity.WithdrawalRequestQueue)),
+		rabbitmq.WithConsumerOptionsExchangeKind("direct"),
+		rabbitmq.WithConsumerOptionsExchangeDurable,
+		rabbitmq.WithConsumerOptionsQueueArgs(rabbitmq.Table{amqp.QueueMessageTTLArg: 30 * 1000}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.SendMessage(nil, entity.WashBonusExchange, string(entity.WashBonusRoutingKey), entity.DataMessageType)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.SendMessage(nil, entity.ControlExchange, string(entity.WashControlQueue), entity.DataMessageType)
 	if err != nil {
 		return nil, err
 	}
