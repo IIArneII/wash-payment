@@ -7,18 +7,20 @@ import (
 type (
 	WashServer struct {
 		ID          uuid.UUID
-		Title       string
+		Name        string
 		Description string
+		OwnerID     string
 		GroupID     uuid.UUID
-		Version     int64
+		Version     int
 		Deleted     bool
 	}
 
 	WashServerUpdate struct {
-		Version     *int64
-		Title       *string
+		Version     *int
+		Name        *string
 		Description *string
 		GroupID     *uuid.UUID
+		OwnerID     *string
 		Deleted     *bool
 	}
 )

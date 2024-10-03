@@ -14,7 +14,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var columns = []string{"id", "title", "description", "group_id", "version", "deleted"}
+var columns = []string{"id", "name", "description", "group_id", "owner_id", "version", "deleted"}
 
 func (r *washServerRepo) Get(ctx context.Context, id uuid.UUID) (entity.WashServer, error) {
 	op := "failed to get wash server by ID: %w"
@@ -67,8 +67,11 @@ func (r *washServerRepo) Update(ctx context.Context, id uuid.UUID, washServerUpd
 		Update(dbmodels.WashServersTable).
 		Where(dbmodels.ByIDCondition, id)
 
-	if WashServerUpdateDB.Title != nil {
-		query.Set("title", WashServerUpdateDB.Title)
+	if WashServerUpdateDB.Name != nil {
+		query.Set("name", WashServerUpdateDB.Name)
+	}
+	if WashServerUpdateDB.OwnerID != nil {
+		query.Set("owner_id", WashServerUpdateDB.OwnerID)
 	}
 	if WashServerUpdateDB.Description != nil {
 		query.Set("description", WashServerUpdateDB.Description)

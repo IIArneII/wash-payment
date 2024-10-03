@@ -21,14 +21,15 @@ type (
 		GroupOrganizationID uuid.NullUUID `db:"g_organization_id"`
 		GroupName           *string       `db:"g_name"`
 		GroupDescription    *string       `db:"g_description"`
-		GroupVersion        *int64        `db:"g_version"`
+		GroupVersion        *int          `db:"g_version"`
 		GroupDeleted        *bool         `db:"g_deleted"`
 
 		WashServerID          uuid.NullUUID `db:"ws_id"`
-		WashServerTitle       *string       `db:"ws_title"`
+		WashServerName        *string       `db:"ws_name"`
 		WashServerDescription *string       `db:"ws_description"`
+		WashServerOwnerID     *string       `db:"ws_owner_id"`
 		WashServerGroupID     uuid.NullUUID `db:"ws_group_id"`
-		WashServerVersion     *int64        `db:"ws_version"`
+		WashServerVersion     *int          `db:"ws_version"`
 		WashServerDeleted     *bool         `db:"ws_deleted"`
 
 		UserID             *string       `db:"u_id"`

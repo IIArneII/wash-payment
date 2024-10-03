@@ -137,6 +137,13 @@ func (svc *rabbitService) SendMessage(msg interface{}, service entity.Exchange, 
 			rabbitmq.WithPublishOptionsType(string(messageType)),
 			rabbitmq.WithPublishOptionsExchange(string(entity.PaymentExchange)),
 		)
+	case entity.ControlExchange:
+		return svc.controlPublisher.Publish(
+			jsonMsg,
+			[]string{string(routingKey)},
+			rabbitmq.WithPublishOptionsType(string(messageType)),
+			rabbitmq.WithPublishOptionsExchange(string(entity.ControlExchange)),
+		)
 	default:
 		panic("Unknown service")
 	}

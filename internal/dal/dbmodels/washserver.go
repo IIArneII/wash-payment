@@ -7,18 +7,20 @@ import (
 type (
 	WashServer struct {
 		ID          uuid.UUID `db:"id"`
-		Title       string    `db:"title"`
+		Name        string    `db:"name"`
 		Description string    `db:"description"`
 		GroupID     uuid.UUID `db:"group_id"`
-		Version     int64     `db:"version"`
+		OwnerID     string    `db:"owner_id"`
+		Version     int       `db:"version"`
 		Deleted     bool      `db:"deleted"`
 	}
 
 	WashServerUpdate struct {
-		Version     *int64        `db:"version"`
-		Title       *string       `db:"title"`
+		Version     *int          `db:"version"`
+		Name        *string       `db:"name"`
 		Description *string       `db:"description"`
 		GroupID     uuid.NullUUID `db:"group_id"`
+		OwnerID     *string       `db:"owner_id"`
 		Deleted     *bool         `db:"deleted"`
 	}
 )

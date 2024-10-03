@@ -17,7 +17,7 @@ func GroupFromTransactionDB(transaction dbmodels.Transaction) *entity.Group {
 	if transaction.GroupDescription != nil {
 		description = *transaction.GroupDescription
 	}
-	var version int64
+	var version int
 	if transaction.GroupVersion != nil {
 		version = *transaction.GroupVersion
 	}

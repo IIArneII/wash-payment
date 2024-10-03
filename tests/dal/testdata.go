@@ -50,7 +50,7 @@ func generateGroup(organizationID uuid.UUID, version int) entity.Group {
 		Name:           randomdata.FirstName(randomdata.Male),
 		Description:    randomdata.RandStringRunes(50),
 		Deleted:        false,
-		Version:        int64(version),
+		Version:        version,
 	}
 }
 
@@ -58,10 +58,10 @@ func generateWashServer(groupID uuid.UUID, version int) entity.WashServer {
 	return entity.WashServer{
 		ID:          uuid.NewV4(),
 		GroupID:     groupID,
-		Title:       randomdata.FirstName(randomdata.Male),
+		Name:       randomdata.FirstName(randomdata.Male),
 		Description: randomdata.RandStringRunes(50),
 		Deleted:     false,
-		Version:     int64(version),
+		Version:     version,
 	}
 }
 

@@ -73,7 +73,7 @@ func TestUpdateGroup(tt *testing.T) {
 
 	group1.Name = randomdata.FirstName(randomdata.Male)
 	group1.Description = randomdata.RandStringRunes(50)
-	group1.Version = int64(2)
+	group1.Version = 2
 	groupUpdate := entity.GroupUpdate{
 		Name:        &group1.Name,
 		Description: &group1.Description,
@@ -90,14 +90,14 @@ func TestUpdateGroup(tt *testing.T) {
 	_, err = repositories.GroupRepo.Update(ctx, group2.ID, groupUpdate)
 	t.Err(err, app.ErrNotFound)
 
-	group1.Version = int64(1)
+	group1.Version = 1
 	groupUpdate = entity.GroupUpdate{
 		Version: &group1.Version,
 	}
 	_, err = repositories.GroupRepo.Update(ctx, group1.ID, groupUpdate)
 	t.Err(err, app.ErrNotFound)
 
-	group1.Version = int64(3)
+	group1.Version = 3
 	group1.Deleted = true
 	groupUpdate = entity.GroupUpdate{
 		Deleted: &group1.Deleted,

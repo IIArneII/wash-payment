@@ -18,6 +18,7 @@ type rabbitService struct {
 	l *zap.SugaredLogger
 
 	washBonusPublisher *rabbitmq.Publisher
+	controlPublisher   *rabbitmq.Publisher
 	paymentPublisher   *rabbitmq.Publisher
 	adminConsumer      *rabbitmq.Consumer
 	paymentConsumer    *rabbitmq.Consumer
@@ -68,6 +69,18 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 		return nil, err
 	}
 
+	svc.controlPublisher, err = rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+		rabbitmq.WithPublisherOptionsExchangeName(string(entity.ControlExchange)),
+		rabbitmq.WithPublisherOptionsExchangeKind("direct"),
+		rabbitmq.WithPublisherOptionsExchangeDurable,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	svc.paymentPublisher, err = rabbitmq.NewPublisher(
 		conn,
 		rabbitmq.WithPublisherOptionsLogging,
@@ -110,6 +123,11 @@ func NewRabbitService(l *zap.SugaredLogger, cfg config.RabbitMQConfig, rabbitSvc
 	}
 
 	err = svc.SendMessage(nil, entity.WashBonusExchange, string(entity.WashBonusRoutingKey), entity.DataMessageType)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.SendMessage(nil, entity.ControlExchange, string(entity.WashControlQueue), entity.DataMessageType)
 	if err != nil {
 		return nil, err
 	}

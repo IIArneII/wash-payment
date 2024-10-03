@@ -10,12 +10,12 @@ type (
 		OrganizationID uuid.UUID `db:"organization_id"`
 		Name           string    `db:"name"`
 		Description    string    `db:"description"`
-		Version        int64     `db:"version"`
+		Version        int       `db:"version"`
 		Deleted        bool      `db:"deleted"`
 	}
 
 	GroupUpdate struct {
-		Version     *int64  `db:"version"`
+		Version     *int    `db:"version"`
 		Name        *string `db:"name"`
 		Description *string `db:"description"`
 		Deleted     *bool   `db:"deleted"`

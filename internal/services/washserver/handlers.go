@@ -53,9 +53,10 @@ func (s *washServerService) Upsert(ctx context.Context, washServer entity.WashSe
 
 func washServerToUpdate(ws entity.WashServer) entity.WashServerUpdate {
 	return entity.WashServerUpdate{
-		Title:       &ws.Title,
+		Name:        &ws.Name,
 		Description: &ws.Description,
 		Version:     &ws.Version,
+		OwnerID:     &ws.OwnerID,
 		Deleted:     &ws.Deleted,
 		GroupID:     &ws.GroupID,
 	}

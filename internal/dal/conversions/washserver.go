@@ -9,15 +9,15 @@ func WashServerFromTransactionDB(transaction dbmodels.Transaction) *entity.WashS
 	if !transaction.WashServerID.Valid {
 		return nil
 	}
-	var title string
-	if transaction.WashServerTitle != nil {
-		title = *transaction.WashServerTitle
+	var name string
+	if transaction.WashServerName != nil {
+		name = *transaction.WashServerName
 	}
 	var description string
 	if transaction.WashServerDescription != nil {
 		description = *transaction.WashServerDescription
 	}
-	var version int64
+	var version int
 	if transaction.WashServerVersion != nil {
 		version = *transaction.WashServerVersion
 	}
@@ -25,12 +25,17 @@ func WashServerFromTransactionDB(transaction dbmodels.Transaction) *entity.WashS
 	if transaction.WashServerDeleted != nil {
 		deleted = *transaction.WashServerDeleted
 	}
+	var ownerID string
+	if transaction.WashServerOwnerID != nil {
+		ownerID = *transaction.WashServerOwnerID
+	}
 
 	return &entity.WashServer{
 		ID:          transaction.WashServerID.UUID,
 		GroupID:     transaction.WashServerGroupID.UUID,
-		Title:       title,
+		Name:        name,
 		Description: description,
+		OwnerID:     ownerID,
 		Version:     version,
 		Deleted:     deleted,
 	}
@@ -39,8 +44,9 @@ func WashServerFromTransactionDB(transaction dbmodels.Transaction) *entity.WashS
 func WashServerFromDB(gr dbmodels.WashServer) entity.WashServer {
 	return entity.WashServer{
 		ID:          gr.ID,
-		Title:       gr.Title,
+		Name:        gr.Name,
 		Description: gr.Description,
+		OwnerID:     gr.OwnerID,
 		GroupID:     gr.GroupID,
 		Version:     gr.Version,
 		Deleted:     gr.Deleted,
@@ -50,8 +56,9 @@ func WashServerFromDB(gr dbmodels.WashServer) entity.WashServer {
 func WashServerToDB(gr entity.WashServer) dbmodels.WashServer {
 	return dbmodels.WashServer{
 		ID:          gr.ID,
-		Title:       gr.Title,
+		Name:        gr.Name,
 		Description: gr.Description,
+		OwnerID:     gr.OwnerID,
 		GroupID:     gr.GroupID,
 		Version:     gr.Version,
 		Deleted:     gr.Deleted,
@@ -61,8 +68,8 @@ func WashServerToDB(gr entity.WashServer) dbmodels.WashServer {
 func WashServerUpdateToDB(gr entity.WashServerUpdate) dbmodels.WashServerUpdate {
 	washServerUpdate := dbmodels.WashServerUpdate{}
 
-	if gr.Title != nil {
-		washServerUpdate.Title = gr.Title
+	if gr.Name != nil {
+		washServerUpdate.Name = gr.Name
 	}
 	if gr.Description != nil {
 		washServerUpdate.Description = gr.Description
@@ -72,6 +79,9 @@ func WashServerUpdateToDB(gr entity.WashServerUpdate) dbmodels.WashServerUpdate 
 	}
 	if gr.Deleted != nil {
 		washServerUpdate.Deleted = gr.Deleted
+	}
+	if gr.OwnerID != nil {
+		washServerUpdate.OwnerID = gr.OwnerID
 	}
 	if gr.GroupID != nil {
 		washServerUpdate.GroupID.UUID = *gr.GroupID

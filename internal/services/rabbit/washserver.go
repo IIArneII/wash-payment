@@ -35,8 +35,9 @@ func washServerFromRabbit(gr rabbitEntity.WashServer) (entity.WashServer, error)
 
 	return entity.WashServer{
 		ID:          id,
-		Title:       gr.Title,
+		Name:        gr.Name,
 		GroupID:     gId,
+		OwnerID:     gr.OwnerID,
 		Description: gr.Description,
 		Version:     gr.Version,
 		Deleted:     gr.Deleted,

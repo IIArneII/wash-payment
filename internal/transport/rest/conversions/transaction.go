@@ -74,7 +74,7 @@ func WashServerToRest(group entity.WashServer) models.WashServer {
 
 	return models.WashServer{
 		ID:      &id,
-		Title:   &group.Title,
+		Title:   &group.Name,
 		Deleted: &group.Deleted,
 	}
 }

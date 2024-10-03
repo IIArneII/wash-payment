@@ -87,12 +87,12 @@ func TestUpdateWashServer(tt *testing.T) {
 	_, err = repositories.WashServerRepo.Create(ctx, washServer1)
 	t.Nil(err)
 
-	washServer1.Title = randomdata.FirstName(randomdata.Male)
+	washServer1.Name = randomdata.FirstName(randomdata.Male)
 	washServer1.Description = randomdata.RandStringRunes(50)
 	washServer1.GroupID = group2.ID
-	washServer1.Version = int64(2)
+	washServer1.Version = 2
 	washServer1Update := entity.WashServerUpdate{
-		Title:       &washServer1.Title,
+		Name:        &washServer1.Name,
 		Description: &washServer1.Description,
 		GroupID:     &washServer1.GroupID,
 		Version:     &washServer1.Version,
@@ -108,7 +108,7 @@ func TestUpdateWashServer(tt *testing.T) {
 	_, err = repositories.WashServerRepo.Update(ctx, washServer2.ID, washServer1Update)
 	t.Err(err, app.ErrNotFound)
 
-	washServer1.Version = int64(1)
+	washServer1.Version = 1
 	washServer1Update = entity.WashServerUpdate{
 		Version: &washServer1.Version,
 	}
@@ -116,7 +116,7 @@ func TestUpdateWashServer(tt *testing.T) {
 	_, err = repositories.WashServerRepo.Update(ctx, washServer1.ID, washServer1Update)
 	t.Err(err, app.ErrNotFound)
 
-	washServer1.Version = int64(3)
+	washServer1.Version = 3
 	washServer1.Deleted = true
 	washServer1Update = entity.WashServerUpdate{
 		Deleted: &washServer1.Deleted,
